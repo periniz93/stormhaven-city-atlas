@@ -21,10 +21,14 @@ button { font:inherit; }
 .district-button { display:flex; align-items:center; gap:9px; padding:7px 10px; border:0; border-left:1px solid rgba(126,154,153,.15); color:#758684; background:linear-gradient(90deg,rgba(6,12,15,.56),transparent); font-size:10px; letter-spacing:.055em; text-align:left; cursor:pointer; transition:color .2s,border-color .2s,padding-left .2s; }
 .district-button::before { content:""; width:4px; height:4px; border-radius:50%; background:currentColor; box-shadow:0 0 9px currentColor; }
 .district-button:hover,.district-button.is-active { padding-left:14px; color:var(--arc); border-left-color:var(--arc); }
-.detail-panel { position:absolute; z-index:10; right:28px; bottom:28px; width:min(355px,calc(100vw - 40px)); padding:20px 21px 18px; border:1px solid rgba(145,179,180,.18); border-top:2px solid var(--district-color,var(--arc)); background:linear-gradient(145deg,rgba(10,19,23,.93),rgba(5,10,13,.85)); box-shadow:0 18px 70px rgba(0,0,0,.45); backdrop-filter:blur(16px); }
+.detail-panel { position:absolute; z-index:10; right:28px; bottom:28px; width:min(390px,calc(100vw - 40px)); padding:20px 21px 18px; border:1px solid rgba(145,179,180,.18); border-top:2px solid var(--district-color,var(--arc)); background:linear-gradient(145deg,rgba(10,19,23,.93),rgba(5,10,13,.85)); box-shadow:0 18px 70px rgba(0,0,0,.45); backdrop-filter:blur(16px); }
 .detail-kicker { display:flex; justify-content:space-between; margin-bottom:8px; color:var(--district-color,var(--arc)); font-size:9px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; }
 .detail-panel h2 { margin:0 0 7px; color:#f0f4ef; font:600 31px/1 var(--font-display),serif; }
 .detail-panel p { margin:0; color:#9caaa7; font-size:12px; line-height:1.6; }
+.local-sites { margin-top:14px; padding-top:11px; border-top:1px solid rgba(150,177,176,.12); }
+.local-sites-label { display:block; margin-bottom:8px; color:#637a78; font-size:8px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; }
+.local-site-list { display:flex; flex-wrap:wrap; gap:5px; }
+.local-site { padding:5px 7px; border:1px solid color-mix(in srgb,var(--district-color,var(--arc)) 24%,transparent); color:#aab9b6; background:color-mix(in srgb,var(--district-color,var(--arc)) 7%,transparent); font-size:9px; letter-spacing:.04em; }
 .coordinates { display:flex; gap:14px; margin-top:15px; padding-top:12px; border-top:1px solid rgba(150,177,176,.12); color:#6e8280; font-size:9px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; }
 .coordinates b { color:#b4c4c1; font-weight:600; }
 .compass { position:absolute; z-index:8; left:29px; bottom:29px; width:50px; height:50px; border:1px solid rgba(141,173,173,.2); border-radius:50%; color:#839492; font-size:9px; font-weight:700; pointer-events:none; }
@@ -32,6 +36,8 @@ button { font:inherit; }
 .compass::after { content:""; position:absolute; left:23px; top:9px; width:3px; height:30px; background:linear-gradient(var(--arc) 0 48%,#42504f 48%); clip-path:polygon(50% 0,100% 45%,60% 40%,60% 100%,40% 100%,40% 40%,0 45%); }
 .map-label { appearance:none; padding:4px 7px; border:1px solid rgba(122,189,196,.24); background:rgba(4,10,13,.72); color:#b9c8c5; font:700 9px/1 var(--font-sans),sans-serif; letter-spacing:.12em; text-transform:uppercase; white-space:nowrap; cursor:pointer; backdrop-filter:blur(7px); transition:color .2s,border-color .2s,transform .2s; pointer-events:auto; }
 .map-label:hover { color:#fff; border-color:var(--arc); transform:translateY(-2px); }
+.poi-label { position:relative; padding:5px 8px 5px 17px; border:1px solid rgba(114,228,255,.24); background:linear-gradient(90deg,rgba(8,20,24,.94),rgba(5,11,14,.8)); box-shadow:0 5px 20px rgba(0,0,0,.4); color:#d8e6e2; font:700 8px/1 var(--font-sans),sans-serif; letter-spacing:.11em; text-transform:uppercase; white-space:nowrap; backdrop-filter:blur(7px); }
+.poi-label::before { content:""; position:absolute; left:7px; top:50%; width:4px; height:4px; border-radius:50%; background:var(--arc); box-shadow:0 0 8px var(--arc); transform:translateY(-50%); }
 .reference-backdrop { position:absolute; z-index:30; inset:0; display:grid; place-items:center; padding:28px; background:rgba(2,5,7,.86); backdrop-filter:blur(14px); }
 .reference-plate { position:relative; max-width:min(1040px,94vw); max-height:90vh; padding:10px; border:1px solid rgba(190,160,109,.28); background:#121414; box-shadow:0 28px 90px #000; }
 .reference-plate img { display:block; max-width:100%; max-height:calc(90vh - 20px); object-fit:contain; }

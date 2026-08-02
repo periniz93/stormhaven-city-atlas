@@ -21,6 +21,26 @@ const DISTRICTS: District[] = [
   { name:"Foggy Bottoms",short:"Foggy Bottoms",x:86,y:7,z:7,color:"#718467",kind:"Swamp edge · Lower city",population:"3,500",description:"Platforms sag into the eastern marsh. Pre-Sundering stone shows through the mud wherever the district has not sunk yet." },
 ];
 
+type LocalSite={name:string;x:number;y:number;z?:number};
+const LOCAL_SITES:Record<string,LocalSite[]>={
+  "The Sea Ward":[{name:"Whale-Jaw Arch",x:10,y:10},{name:"Beacon’s Echo",x:13,y:6,z:12},{name:"Lantern Fishmarket",x:8.5,y:7},{name:"Leviathan Quays",x:12,y:4}],
+  "The Spillway":[{name:"The Drain",x:37,y:6},{name:"Three Sluices",x:40,y:7},{name:"Rust Market",x:35,y:4},{name:"Gutter Gate",x:41,y:3}],
+  "Radiance":[{name:"Luminox Hall",x:21,y:24},{name:"Mirror Market",x:24,y:22},{name:"Dark Cells",x:20,y:20},{name:"Glarebound Plaza",x:23,y:19}],
+  "The Beacon":[{name:"GlassWorks",x:23,y:29,z:30},{name:"Furnace Belt",x:27,y:30,z:30},{name:"Night Galleries",x:25,y:32,z:30},{name:"Guild Mouth",x:24,y:27,z:30}],
+  "The Whispers":[{name:"Murk Street",x:47,y:15,z:15},{name:"The Red Veil",x:51,y:17,z:16},{name:"Drowned Candle",x:45,y:13,z:14},{name:"Moth & Shroud",x:50,y:12,z:15}],
+  "Summit":[{name:"Prism Hall",x:59,y:52,z:45},{name:"Conclave Tower",x:61,y:55,z:45},{name:"Skytouched Observatory",x:56,y:55,z:45},{name:"First-Blood Balcony",x:64,y:52,z:45}],
+  "The Grove":[{name:"The Synapse",x:75,y:47,z:43},{name:"Cantor Terraces",x:72,y:45,z:40},{name:"Listening Walk",x:78,y:43,z:35},{name:"Restricted Canopy",x:74,y:49,z:45}],
+  "The Eye":[{name:"Grand Cathedral",x:85,y:35,z:30},{name:"Zephyr’s Pavilion",x:87,y:37,z:31},{name:"Brawl Courts",x:82,y:34,z:30},{name:"Shrine Ring",x:86,y:32,z:29}],
+  "Raincatcher’s Ward":[{name:"Jade Terrace",x:78,y:24,z:42},{name:"Silverstream",x:76,y:21,z:37},{name:"Clearwater House",x:74,y:18,z:32},{name:"Sixty-Day Basin",x:72,y:16,z:28}],
+  "Foggy Bottoms":[{name:"Slanted Market",x:85,y:9,z:8},{name:"Mirefoot Ruins",x:89,y:7,z:4},{name:"Blackwater Complex",x:83,y:6,z:7},{name:"Bog-Runner Mooring",x:90,y:4,z:2}],
+};
+
+const DISTRICT_FOCUS_SCALE:Record<string,[number,number]>={
+  "The Sea Ward":[1.55,1.05],"The Spillway":[1.2,.82],Radiance:[1.22,.92],"The Beacon":[1.25,1],
+  "The Whispers":[1.55,1.02],Summit:[1.55,.88],"The Grove":[1.25,.9],"The Eye":[1.18,.92],
+  "Raincatcher’s Ward":[1.45,1.05],"Foggy Bottoms":[1.5,.95],
+};
+
 const S=.78, V=.12;
 function terrainHeight(x:number,y:number){
   let h=4+40*Math.pow(Math.max(0,y)/58,1.13);
@@ -123,7 +143,7 @@ function buildTerrain(){
 }
 
 function createCity(selectDistrict:(name:string)=>void){
-  const city=new THREE.Group(),hitTargets:THREE.Object3D[]=[],labelLayer=new THREE.Group();
+  const city=new THREE.Group(),hitTargets:THREE.Object3D[]=[],labelLayer=new THREE.Group(),detailLayers=new Map<string,THREE.Group>();
   const stone=new THREE.MeshStandardMaterial({color:0x515657,roughness:.86,metalness:.08}),darkStone=new THREE.MeshStandardMaterial({color:0x2b3133,roughness:.95}),slate=new THREE.MeshStandardMaterial({color:0x343d43,roughness:.82,metalness:.06}),soot=new THREE.MeshStandardMaterial({color:0x1c2528,roughness:.88,metalness:.16}),copper=new THREE.MeshStandardMaterial({color:0x81543b,roughness:.62,metalness:.58}),plaster=new THREE.MeshStandardMaterial({color:0x7b7770,roughness:.92}),wetWood=new THREE.MeshStandardMaterial({color:0x3d3029,roughness:.85}),glass=new THREE.MeshPhysicalMaterial({color:0x62d8e8,emissive:0x176b7a,emissiveIntensity:2.5,transparent:true,opacity:.78,roughness:.14,metalness:.2}),water=new THREE.MeshPhysicalMaterial({color:0x17454e,emissive:0x092832,emissiveIntensity:.4,transparent:true,opacity:.86,roughness:.12,metalness:.15}),garden=new THREE.MeshStandardMaterial({color:0x405a42,roughness:.95});
   city.add(buildTerrain());
   const cobble=new THREE.MeshStandardMaterial({color:0x202b2d,roughness:.72,metalness:.15}),paleStone=new THREE.MeshStandardMaterial({color:0x6f716c,roughness:.9}),arcLamp=new THREE.MeshBasicMaterial({color:0x76e8ff}),gasLamp=new THREE.MeshBasicMaterial({color:0xe2a258}),marshWater=new THREE.MeshPhysicalMaterial({color:0x263c34,roughness:.26,metalness:.12,transparent:true,opacity:.88}),redCanvas=new THREE.MeshStandardMaterial({color:0x784638,roughness:.82}),tealCanvas=new THREE.MeshStandardMaterial({color:0x35666a,roughness:.82});
@@ -194,11 +214,24 @@ function createCity(selectDistrict:(name:string)=>void){
   addCurve(infrastructure,[[46,15,15],[40,14,12],[32,12,8],[24,10,4],[16,8,2],[10,6,0]],0x2d8fa1,.34,.95);addCurve(infrastructure,[[70,14,25],[64,14,22],[58,14,18],[52,14,16],[46,14,15]],0x2d8fa1,.3,.95);addCurve(infrastructure,[[82,28,18],[72,26,16],[62,24,14],[52,22,12],[42,20,10],[32,16,6]],0x2d8fa1,.26,.85);
   addBridge(infrastructure,40,14,12,.65,1.55,Math.PI/2,copper);addBridge(infrastructure,32,12,8,.62,1.4,Math.PI/2,wetWood);addBridge(infrastructure,58,14,18,.68,1.45,Math.PI/2,stone);addBridge(infrastructure,72,26,16,.75,1.6,Math.PI/2,copper);addBridge(infrastructure,52,22,12,.7,1.5,Math.PI/2,stone);city.add(infrastructure);
 
-  DISTRICTS.forEach(district=>{const p=cityPos(district.x,district.y,district.z),hit=new THREE.Mesh(new THREE.CylinderGeometry(3.3,3.3,5.5,12),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));hit.position.set(p.x,p.y+2.8,p.z);hit.userData.district=district.name;city.add(hit);hitTargets.push(hit);const element=document.createElement("button");element.className="map-label";element.textContent=district.short;element.setAttribute("aria-label",`Explore ${district.name}`);element.addEventListener("click",event=>{event.stopPropagation();selectDistrict(district.name)});const label=new CSS2DObject(element);label.position.set(p.x,p.y+(district.name==="The Beacon"?20:district.name==="Summit"?10:3),p.z);labelLayer.add(label)});city.add(labelLayer);
-  return{city,hitTargets,labelLayer,infrastructure,beaconLight};
+  const haloMaterial=new THREE.MeshBasicMaterial({color:0x72e4ff,transparent:true,opacity:.62,depthWrite:false}),selectionHalo=new THREE.Mesh(new THREE.TorusGeometry(4.1,.055,6,64),haloMaterial);selectionHalo.rotation.x=Math.PI/2;selectionHalo.visible=false;city.add(selectionHalo);
+  DISTRICTS.forEach(district=>{
+    const p=cityPos(district.x,district.y,district.z),hit=new THREE.Mesh(new THREE.CylinderGeometry(4.7,4.7,6.5,12),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
+    hit.position.set(p.x,p.y+2.8,p.z);hit.userData.district=district.name;city.add(hit);hitTargets.push(hit);
+    const element=document.createElement("button");element.className="map-label";element.textContent=district.short;element.setAttribute("aria-label",`Explore ${district.name}`);element.addEventListener("click",event=>{event.stopPropagation();selectDistrict(district.name)});
+    const label=new CSS2DObject(element);label.position.set(p.x,p.y+(district.name==="The Beacon"?20:district.name==="Summit"?10:3),p.z);labelLayer.add(label);
+    const detailLayer=new THREE.Group();detailLayer.visible=false;
+    for(const site of LOCAL_SITES[district.name]??[]){
+      const sitePosition=cityPos(site.x,site.y,site.z),stem=new THREE.Mesh(new THREE.CylinderGeometry(.018,.035,.52,6),haloMaterial),marker=new THREE.Mesh(new THREE.OctahedronGeometry(.09,0),haloMaterial);
+      stem.position.set(sitePosition.x,sitePosition.y+.26,sitePosition.z);marker.position.set(sitePosition.x,sitePosition.y+.6,sitePosition.z);detailLayer.add(stem,marker);
+      const siteElement=document.createElement("div");siteElement.className="poi-label";siteElement.textContent=site.name;const siteLabel=new CSS2DObject(siteElement);siteLabel.position.set(sitePosition.x,sitePosition.y+.82,sitePosition.z);detailLayer.add(siteLabel);
+    }
+    detailLayers.set(district.name,detailLayer);city.add(detailLayer);
+  });city.add(labelLayer);
+  return{city,hitTargets,labelLayer,detailLayers,selectionHalo,haloMaterial,infrastructure,beaconLight};
 }
 
-type SceneApi={focus:(district:District)=>void;street:(district:District)=>void;setAtlas:(atlas:boolean)=>void;setLabels:(visible:boolean)=>void;setInfrastructure:(visible:boolean)=>void};
+type SceneApi={focus:(district:District)=>void;street:(district:District)=>void;cityView:()=>void;setAtlas:(atlas:boolean)=>void;setLabels:(visible:boolean)=>void;setInfrastructure:(visible:boolean)=>void};
 
 export function StormhavenMap(){
   const hostRef=useRef<HTMLDivElement>(null),apiRef=useRef<SceneApi|null>(null);
@@ -211,30 +244,50 @@ export function StormhavenMap(){
     const labelRenderer=new CSS2DRenderer();labelRenderer.setSize(host.clientWidth,host.clientHeight);labelRenderer.domElement.style.position="absolute";labelRenderer.domElement.style.inset="0";labelRenderer.domElement.style.pointerEvents="none";host.appendChild(labelRenderer.domElement);
     const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.055;controls.minDistance=2.2;controls.maxDistance=115;controls.maxPolarAngle=Math.PI*.49;controls.target.set(4,3.2,0);
     scene.add(new THREE.HemisphereLight(0x5d8190,0x17100e,1.2));const stormLight=new THREE.DirectionalLight(0xb7dae1,3.3);stormLight.position.set(-28,52,22);stormLight.castShadow=true;stormLight.shadow.mapSize.set(2048,2048);stormLight.shadow.camera.left=-55;stormLight.shadow.camera.right=55;stormLight.shadow.camera.top=42;stormLight.shadow.camera.bottom=-42;scene.add(stormLight);const copperGlow=new THREE.PointLight(0xd47842,18,34,2);copperGlow.position.set(-19,5,13);scene.add(copperGlow);
-    const {city,hitTargets,labelLayer,infrastructure,beaconLight}=createCity(name=>{const district=DISTRICTS.find(item=>item.name===name);if(district)setSelected(district)});scene.add(city);
+    const {city,hitTargets,labelLayer,detailLayers,selectionHalo,haloMaterial,infrastructure,beaconLight}=createCity(name=>{const district=DISTRICTS.find(item=>item.name===name);if(district){setSelected(district);setAtlas(false);setLabels(true);apiRef.current?.focus(district)}});scene.add(city);
     const clouds=new THREE.Group(),cloudMaterial=new THREE.MeshStandardMaterial({color:0x0c1419,transparent:true,opacity:.72,roughness:1,depthWrite:false}),cloudRandom=seeded(903);for(let i=0;i<34;i++){const cloud=new THREE.Mesh(new THREE.IcosahedronGeometry(5+cloudRandom()*9,2),cloudMaterial);cloud.scale.y=.16+cloudRandom()*.11;cloud.position.set((cloudRandom()-.5)*115,20+cloudRandom()*8,(cloudRandom()-.5)*75);clouds.add(cloud)}scene.add(clouds);
     const rainCount=2400,rainPositions=new Float32Array(rainCount*3),rainRandom=seeded(8844);for(let i=0;i<rainCount;i++){rainPositions[i*3]=(rainRandom()-.5)*105;rainPositions[i*3+1]=rainRandom()*34;rainPositions[i*3+2]=(rainRandom()-.5)*74}const rainGeometry=new THREE.BufferGeometry();rainGeometry.setAttribute("position",new THREE.BufferAttribute(rainPositions,3));const rain=new THREE.Points(rainGeometry,new THREE.PointsMaterial({color:0x8ebbc2,size:.025,transparent:true,opacity:.42}));scene.add(rain);
-    const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let pointerDown={x:0,y:0};const onDown=(event:PointerEvent)=>{pointerDown={x:event.clientX,y:event.clientY}},onClick=(event:PointerEvent)=>{if(Math.hypot(event.clientX-pointerDown.x,event.clientY-pointerDown.y)>5)return;const bounds=renderer.domElement.getBoundingClientRect();pointer.x=(event.clientX-bounds.left)/bounds.width*2-1;pointer.y=-(event.clientY-bounds.top)/bounds.height*2+1;raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(hitTargets,false)[0];if(hit?.object.userData.district){const district=DISTRICTS.find(item=>item.name===hit.object.userData.district);if(district)setSelected(district)}};renderer.domElement.addEventListener("pointerdown",onDown);renderer.domElement.addEventListener("pointerup",onClick);
+    const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let pointerDown={x:0,y:0};const onDown=(event:PointerEvent)=>{pointerDown={x:event.clientX,y:event.clientY}},onClick=(event:PointerEvent)=>{if(Math.hypot(event.clientX-pointerDown.x,event.clientY-pointerDown.y)>5)return;const bounds=renderer.domElement.getBoundingClientRect();pointer.x=(event.clientX-bounds.left)/bounds.width*2-1;pointer.y=-(event.clientY-bounds.top)/bounds.height*2+1;raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(hitTargets,false)[0];if(hit?.object.userData.district){const district=DISTRICTS.find(item=>item.name===hit.object.userData.district);if(district){setSelected(district);setAtlas(false);setLabels(true);apiRef.current?.focus(district)}}};renderer.domElement.addEventListener("pointerdown",onDown);renderer.domElement.addEventListener("pointerup",onClick);
     const tweenCamera=(position:THREE.Vector3,target:THREE.Vector3)=>{const fromPosition=camera.position.clone(),fromTarget=controls.target.clone(),start=performance.now(),duration=950,tick=(time:number)=>{const raw=Math.min(1,(time-start)/duration),eased=1-Math.pow(1-raw,3);camera.position.lerpVectors(fromPosition,position,eased);controls.target.lerpVectors(fromTarget,target,eased);if(raw<1)requestAnimationFrame(tick)};requestAnimationFrame(tick)};
-    apiRef.current={focus:district=>{const target=cityPos(district.x,district.y,district.z),offset=district.name==="The Beacon"?new THREE.Vector3(-9,10,13):new THREE.Vector3(-8,7,11);tweenCamera(target.clone().add(offset),target.clone().add(new THREE.Vector3(0,1.2,0)))},street:district=>{const target=cityPos(district.x,district.y,district.z),offset=new THREE.Vector3(-2.8,1.7,4.1);tweenCamera(target.clone().add(offset),target.clone().add(new THREE.Vector3(0,.65,0)));labelLayer.visible=false},setAtlas:enabled=>enabled?tweenCamera(new THREE.Vector3(0,90,.01),new THREE.Vector3(0,0,0)):tweenCamera(new THREE.Vector3(-47,43,62),new THREE.Vector3(4,3.2,0)),setLabels:visible=>{labelLayer.visible=visible},setInfrastructure:visible=>{infrastructure.visible=visible}};
+    let activeDistrict:District|undefined;
+    const showDistrict=(district?:District,showLabels=true)=>{
+      activeDistrict=district;
+      detailLayers.forEach((layer,name)=>{layer.visible=Boolean(district&&showLabels&&name===district.name)});
+      labelLayer.visible=!district&&showLabels;
+      selectionHalo.visible=Boolean(district);
+      if(district){
+        const target=cityPos(district.x,district.y,district.z),scale=DISTRICT_FOCUS_SCALE[district.name]??[1,1];
+        selectionHalo.position.set(target.x,target.y+.15,target.z);selectionHalo.scale.set(scale[0],scale[1],1);haloMaterial.color.set(district.color);
+      }
+    };
+    const cityView=()=>{activeDistrict=undefined;detailLayers.forEach(layer=>{layer.visible=false});selectionHalo.visible=false;labelLayer.visible=true;tweenCamera(new THREE.Vector3(-47,43,62),new THREE.Vector3(4,3.2,0))};
+    apiRef.current={
+      focus:district=>{showDistrict(district,true);const target=cityPos(district.x,district.y,district.z),offset=district.name==="The Beacon"?new THREE.Vector3(-6.4,6.7,8.7):new THREE.Vector3(-5.2,4.5,7.1);tweenCamera(target.clone().add(offset),target.clone().add(new THREE.Vector3(0,.9,0)))},
+      street:district=>{showDistrict(district,true);const target=cityPos(district.x,district.y,district.z),offset=new THREE.Vector3(-2.8,1.7,4.1);tweenCamera(target.clone().add(offset),target.clone().add(new THREE.Vector3(0,.65,0)))},
+      cityView,
+      setAtlas:enabled=>{activeDistrict=undefined;detailLayers.forEach(layer=>{layer.visible=false});selectionHalo.visible=false;labelLayer.visible=true;enabled?tweenCamera(new THREE.Vector3(0,90,.01),new THREE.Vector3(0,0,0)):cityView()},
+      setLabels:visible=>{labelLayer.visible=visible&&!activeDistrict;detailLayers.forEach((layer,name)=>{layer.visible=visible&&name===activeDistrict?.name})},
+      setInfrastructure:visible=>{infrastructure.visible=visible}
+    };
     const onResize=()=>{camera.aspect=host.clientWidth/host.clientHeight;camera.updateProjectionMatrix();renderer.setSize(host.clientWidth,host.clientHeight);labelRenderer.setSize(host.clientWidth,host.clientHeight)};window.addEventListener("resize",onResize);
     const clock=new THREE.Clock();let animation=0;const animate=()=>{animation=requestAnimationFrame(animate);const elapsed=clock.getElapsedTime();controls.update();clouds.position.x=Math.sin(elapsed*.035)*5;const positions=rainGeometry.attributes.position as THREE.BufferAttribute;for(let i=0;i<rainCount;i++){let y=positions.getY(i)-.22;if(y<-.2)y=33;positions.setY(i,y);positions.setX(i,positions.getX(i)-.008)}positions.needsUpdate=true;beaconLight.intensity=44+Math.sin(elapsed*2.7)*9;renderer.render(scene,camera);labelRenderer.render(scene,camera)};animate();setReady(true);
     return()=>{cancelAnimationFrame(animation);window.removeEventListener("resize",onResize);renderer.domElement.removeEventListener("pointerdown",onDown);renderer.domElement.removeEventListener("pointerup",onClick);controls.dispose();renderer.dispose();scene.traverse(object=>{if(object instanceof THREE.Mesh||object instanceof THREE.Points){object.geometry?.dispose();const materials=Array.isArray(object.material)?object.material:[object.material];materials.forEach(material=>material?.dispose())}});host.replaceChildren();apiRef.current=null};
   },[]);
-  const choose=(district:District)=>{setSelected(district);apiRef.current?.focus(district)};
+  const choose=(district:District)=>{setSelected(district);setAtlas(false);setLabels(true);apiRef.current?.focus(district)};
   return <main className="stormhaven-shell">
     <div ref={hostRef} className="map-canvas" role="img" aria-label="Interactive three-dimensional map of Stormhaven and its ten districts" />
     {!ready&&<div className="loading-mark">Charting the storm</div>}
     <header className="topbar"><div className="brand"><p className="eyebrow">A living atlas · year 503 A.S.</p><h1>Stormhaven</h1><span className="brand-note">Elevation is privilege. Everything else runs downhill.</span></div><div className="controls" aria-label="Map controls">
-      <button className="control-button" type="button" aria-pressed={atlas} onClick={()=>{const next=!atlas;setAtlas(next);apiRef.current?.setAtlas(next)}}>{atlas?"Perspective":"Atlas view"}</button>
+      <button className="control-button" type="button" onClick={()=>{setAtlas(false);setLabels(true);apiRef.current?.cityView()}}>City view</button>
+      <button className="control-button" type="button" aria-pressed={atlas} onClick={()=>{const next=!atlas;setAtlas(next);setLabels(true);apiRef.current?.setAtlas(next)}}>{atlas?"Perspective":"Atlas view"}</button>
       <button className="control-button" type="button" aria-pressed={routes} onClick={()=>{const next=!routes;setRoutes(next);apiRef.current?.setInfrastructure(next)}}>Routes</button>
       <button className="control-button" type="button" aria-pressed={labels} onClick={()=>{const next=!labels;setLabels(next);apiRef.current?.setLabels(next)}}>Labels</button>
-      <button className="control-button" type="button" onClick={()=>{setLabels(false);apiRef.current?.street(selected)}}>Street lens</button>
+      <button className="control-button" type="button" onClick={()=>{setAtlas(false);setLabels(true);apiRef.current?.street(selected)}}>Street lens</button>
       <button className="control-button" type="button" onClick={()=>setReference(true)}>Source map</button>
     </div></header>
     <nav className="district-nav" aria-label="Stormhaven districts">{DISTRICTS.map(district=><button key={district.name} type="button" className={`district-button ${selected.name===district.name?"is-active":""}`} onClick={()=>choose(district)}>{district.short}</button>)}</nav>
-    <aside className="detail-panel" style={{"--district-color":selected.color} as React.CSSProperties} aria-live="polite"><div className="detail-kicker"><span>{selected.kind}</span><span>Pop. {selected.population}</span></div><h2>{selected.name}</h2><p>{selected.description}</p><div className="coordinates"><span><b>X</b> {selected.x}</span><span><b>Y</b> {selected.y}</span><span><b>Z</b> {selected.z}m</span><span>1 unit = 30m</span></div></aside>
-    <div className="map-hint">Drag to orbit · scroll to descend · street lens enters the ward</div>
+    <aside className="detail-panel" style={{"--district-color":selected.color} as React.CSSProperties} aria-live="polite"><div className="detail-kicker"><span>{selected.kind}</span><span>Pop. {selected.population}</span></div><h2>{selected.name}</h2><p>{selected.description}</p><div className="local-sites"><span className="local-sites-label">Ward landmarks · schematic placement</span><div className="local-site-list">{(LOCAL_SITES[selected.name]??[]).map(site=><span className="local-site" key={site.name}>{site.name}</span>)}</div></div><div className="coordinates"><span><b>X</b> {selected.x}</span><span><b>Y</b> {selected.y}</span><span><b>Z</b> {selected.z}m</span><span>1 unit = 30m</span></div></aside>
+    <div className="map-hint">Click a ward to enter · drag to orbit · scroll to descend · City view returns</div>
     <div className="compass" aria-hidden="true" />
     {reference&&<div className="reference-backdrop" role="dialog" aria-modal="true" aria-label="Original Stormhaven cartographer map" onClick={()=>setReference(false)}><div className="reference-plate" onClick={event=>event.stopPropagation()}><img src="/assets/stormhaven-cartographer-reference.webp" alt="Original painted map of Stormhaven used as the architectural and compositional reference" /><button type="button" className="control-button reference-close" onClick={()=>setReference(false)}>Close</button></div></div>}
   </main>;
