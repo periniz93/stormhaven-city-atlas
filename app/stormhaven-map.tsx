@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer.js";
+import { createStormhavenArchitectureKit, type ArchitectureKind, type StormhavenArchitectureKit } from "./stormhaven-architecture";
 
 type District = { name:string; short:string; x:number; y:number; z:number; color:string; kind:string; population:string; description:string };
 
@@ -97,18 +98,15 @@ function addLamp(group:THREE.Group,x:number,y:number,postMaterial:THREE.Material
   const p=cityPos(x,y),post=new THREE.Mesh(new THREE.CylinderGeometry(.025,.035,height,6),postMaterial),lamp=new THREE.Mesh(new THREE.OctahedronGeometry(.09,0),glowMaterial);post.position.set(p.x,p.y+height/2,p.z);lamp.position.set(p.x,p.y+height+.03,p.z);group.add(post,lamp);
 }
 
-function addUrbanGrid(group:THREE.Group,district:District,columns:number,rows:number,spanX:number,spanY:number,seed:number,palette:THREE.Material[],heightScale:number,details:{lean?:number,stilts?:boolean,openCore?:number}={}){
-  const random=seeded(seed),sx=spanX/(columns-1),sy=spanY/(rows-1),windowMat=new THREE.MeshBasicMaterial({color:0xd7a25a,transparent:true,opacity:.64}),pipeMat=new THREE.MeshStandardMaterial({color:0x5b4437,metalness:.62,roughness:.58});
+function addUrbanGrid(group:THREE.Group,district:District,columns:number,rows:number,spanX:number,spanY:number,seed:number,kit:StormhavenArchitectureKit,kinds:ArchitectureKind[],heightScale:number,details:{lean?:number,openCore?:number}={}){
+  const random=seeded(seed),sx=spanX/(columns-1),sy=spanY/(rows-1);
   for(let row=0;row<rows;row++)for(let column=0;column<columns;column++){
     const localX=-spanX/2+column*sx,localY=-spanY/2+row*sy;
     if(Math.abs(localX)<sx*.58||Math.abs(localY)<sy*.54)continue;
     if(details.openCore&&Math.hypot(localX,localY)<details.openCore)continue;
     if((localX/(spanX*.54))**2+(localY/(spanY*.55))**2>1)continue;
-    const x=district.x+localX+(random()-.5)*sx*.2,y=district.y+localY+(random()-.5)*sy*.18,w=sx*S*(.56+random()*.18),d=sy*S*(.55+random()*.2),h=(.66+random()*1.72)*heightScale,material=palette[Math.floor(random()*palette.length)],building=addBox(group,x,y,w,d,h,material,random()>.22);
-    if(details.lean)building.rotation.z=(random()-.5)*details.lean;
-    if(details.stilts){building.position.y+=.22;for(const dx of[-w*.34,w*.34])for(const dz of[-d*.34,d*.34]){const stilt=new THREE.Mesh(new THREE.CylinderGeometry(.025,.035,.45,5),pipeMat);stilt.position.set(building.position.x+dx,building.position.y-h/2-.18,building.position.z+dz);group.add(stilt)}}
-    if(random()>.42){const chimney=new THREE.Mesh(new THREE.CylinderGeometry(.035,.05,.35+random()*.35,6),pipeMat);chimney.position.set(building.position.x+w*.23,building.position.y+h/2+.25,building.position.z+d*.15);group.add(chimney)}
-    if(random()>.36){const window=new THREE.Mesh(new THREE.PlaneGeometry(Math.min(.2,w*.34),Math.min(.28,h*.2)),windowMat);window.position.set(building.position.x,building.position.y,building.position.z+d/2+.006);group.add(window)}
+    const x=district.x+localX+(random()-.5)*sx*.2,y=district.y+localY+(random()-.5)*sy*.18,w=sx*S*(.58+random()*.2),d=sy*S*(.58+random()*.2),h=(.72+random()*1.62)*heightScale,kind=kinds[Math.floor(random()*kinds.length)],building=kit.create(kind,{width:w,depth:d,height:h,seed:seed+row*97+column*13}),p=cityPos(x,y);
+    building.position.copy(p);if(details.lean)building.rotation.z+=(random()-.5)*details.lean;group.add(building);
   }
 }
 function addCurve(group:THREE.Group,points:Array<[number,number,number]>,color:number,width:number,opacity=1){
@@ -129,18 +127,19 @@ function createCity(selectDistrict:(name:string)=>void){
   const stone=new THREE.MeshStandardMaterial({color:0x515657,roughness:.86,metalness:.08}),darkStone=new THREE.MeshStandardMaterial({color:0x2b3133,roughness:.95}),slate=new THREE.MeshStandardMaterial({color:0x343d43,roughness:.82,metalness:.06}),soot=new THREE.MeshStandardMaterial({color:0x1c2528,roughness:.88,metalness:.16}),copper=new THREE.MeshStandardMaterial({color:0x81543b,roughness:.62,metalness:.58}),plaster=new THREE.MeshStandardMaterial({color:0x7b7770,roughness:.92}),wetWood=new THREE.MeshStandardMaterial({color:0x3d3029,roughness:.85}),glass=new THREE.MeshPhysicalMaterial({color:0x62d8e8,emissive:0x176b7a,emissiveIntensity:2.5,transparent:true,opacity:.78,roughness:.14,metalness:.2}),water=new THREE.MeshPhysicalMaterial({color:0x17454e,emissive:0x092832,emissiveIntensity:.4,transparent:true,opacity:.86,roughness:.12,metalness:.15}),garden=new THREE.MeshStandardMaterial({color:0x405a42,roughness:.95});
   city.add(buildTerrain());
   const cobble=new THREE.MeshStandardMaterial({color:0x202b2d,roughness:.72,metalness:.15}),paleStone=new THREE.MeshStandardMaterial({color:0x6f716c,roughness:.9}),arcLamp=new THREE.MeshBasicMaterial({color:0x76e8ff}),gasLamp=new THREE.MeshBasicMaterial({color:0xe2a258}),marshWater=new THREE.MeshPhysicalMaterial({color:0x263c34,roughness:.26,metalness:.12,transparent:true,opacity:.88}),redCanvas=new THREE.MeshStandardMaterial({color:0x784638,roughness:.82}),tealCanvas=new THREE.MeshStandardMaterial({color:0x35666a,roughness:.82});
+  const architecture=createStormhavenArchitectureKit({stone,darkStone,slate,soot,copper,plaster,wetWood,glass,garden,window:arcLamp,warmWindow:gasLamp,pipe:copper});
   const ocean=new THREE.Mesh(new THREE.CircleGeometry(82,96),new THREE.MeshPhysicalMaterial({color:0x071d24,roughness:.18,metalness:.28,transparent:true,opacity:.94}));ocean.rotation.x=-Math.PI/2;ocean.position.y=-.16;ocean.receiveShadow=true;city.add(ocean);
   const wards=new THREE.Group(),streets=new THREE.Group();city.add(wards,streets);
-  addUrbanGrid(wards,DISTRICTS[0],15,10,14,9,11,[wetWood,soot,darkStone],.72,{stilts:true,openCore:2.1});
-  addUrbanGrid(wards,DISTRICTS[1],11,8,10,6,22,[soot,darkStone,copper],.62,{openCore:2.35});
-  addUrbanGrid(wards,DISTRICTS[2],13,10,11,8,33,[plaster,copper,slate],.94,{openCore:1.8});
-  addUrbanGrid(wards,DISTRICTS[3],13,11,11,9,44,[soot,stone,copper],1.08,{openCore:3.1});
-  addUrbanGrid(wards,DISTRICTS[4],17,12,15,10,55,[darkStone,soot,wetWood],.8,{lean:.045,openCore:1.3});
-  addUrbanGrid(wards,DISTRICTS[5],13,10,14,8,66,[plaster,stone,slate],1.62,{openCore:2.3});
-  addUrbanGrid(wards,DISTRICTS[6],9,8,11,8,77,[stone,garden,wetWood],.9,{openCore:3.4});
-  addUrbanGrid(wards,DISTRICTS[7],12,10,10,8,88,[plaster,slate,stone],1.04,{openCore:3.1});
-  addUrbanGrid(wards,DISTRICTS[8],13,11,13,11,99,[stone,wetWood,garden],.74,{openCore:3.2});
-  addUrbanGrid(wards,DISTRICTS[9],14,10,14,8,110,[wetWood,darkStone,garden],.66,{lean:.14,stilts:true,openCore:1.8});
+  addUrbanGrid(wards,DISTRICTS[0],14,9,14,9,11,architecture,["canal-house","warehouse","stilt-house"],.76,{openCore:2.1});
+  addUrbanGrid(wards,DISTRICTS[1],10,7,10,6,22,architecture,["tenement","warehouse","glassworks"],.7,{openCore:2.35});
+  addUrbanGrid(wards,DISTRICTS[2],12,9,11,8,33,architecture,["townhouse","canal-house","glassworks"],.92,{openCore:1.8});
+  addUrbanGrid(wards,DISTRICTS[3],12,10,11,9,44,architecture,["glassworks","warehouse","tenement"],1.04,{openCore:3.1});
+  addUrbanGrid(wards,DISTRICTS[4],15,11,15,10,55,architecture,["tenement","canal-house","townhouse"],.8,{lean:.045,openCore:1.3});
+  addUrbanGrid(wards,DISTRICTS[5],12,9,14,8,66,architecture,["tower-house","townhouse","bathhouse"],1.45,{openCore:2.3});
+  addUrbanGrid(wards,DISTRICTS[6],8,7,11,8,77,architecture,["greenhouse","townhouse","shrine"],.88,{openCore:3.4});
+  addUrbanGrid(wards,DISTRICTS[7],11,9,10,8,88,architecture,["shrine","townhouse","tower-house"],1.02,{openCore:3.1});
+  addUrbanGrid(wards,DISTRICTS[8],12,10,13,11,99,architecture,["bathhouse","greenhouse","canal-house"],.76,{openCore:3.2});
+  addUrbanGrid(wards,DISTRICTS[9],13,9,14,8,110,architecture,["stilt-house","ruin","canal-house"],.7,{lean:.1,openCore:1.8});
 
   // Streets follow the painted map's terrace composition: an east-west civic spine,
   // compact lower-city canal blocks, radial anchors, and narrow climbing approaches.
