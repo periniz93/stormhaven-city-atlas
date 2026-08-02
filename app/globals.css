@@ -37,5 +37,6 @@ button { font:inherit; }
 .reference-plate img { display:block; max-width:100%; max-height:calc(90vh - 20px); object-fit:contain; }
 .reference-close { position:absolute; right:16px; top:16px; background:rgba(5,8,9,.88); color:white; border-color:rgba(255,255,255,.28); }
 .loading-mark { position:absolute; inset:0; display:grid; place-items:center; color:#6f8786; font-size:11px; font-weight:600; letter-spacing:.25em; text-transform:uppercase; }
-@media (max-width:760px) { .topbar{padding:18px;gap:14px}.brand-note,.district-nav,.compass{display:none}.brand h1{font-size:34px}.controls{gap:2px}.control-button{padding:0 8px;font-size:8px}.detail-panel{right:14px;bottom:14px;left:14px;width:auto;padding:15px 17px}.detail-panel h2{font-size:25px} }
+.map-hint { position:absolute; z-index:8; left:50%; bottom:24px; transform:translateX(-50%); color:#6e807e; font-size:9px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; pointer-events:none; text-shadow:0 2px 8px #000; }
+@media (max-width:760px) { .topbar{padding:18px;gap:14px}.brand-note,.district-nav,.compass,.map-hint{display:none}.brand h1{font-size:34px}.controls{gap:2px}.control-button{padding:0 7px;font-size:8px}.detail-panel{right:14px;bottom:14px;left:14px;width:auto;padding:15px 17px}.detail-panel h2{font-size:25px} }
 @media (prefers-reduced-motion:reduce) { *,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important} }
