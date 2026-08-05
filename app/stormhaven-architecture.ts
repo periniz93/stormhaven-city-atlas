@@ -35,16 +35,17 @@ function randomFrom(seed:number){let t=seed>>>0;return()=>{t+=0x6d2b79f5;let r=M
 
 export function createStormhavenArchitectureKit(m:ArchitectureMaterials):StormhavenArchitectureKit{
   const box=(g:THREE.Group,w:number,h:number,d:number,material:THREE.Material,x=0,y=h/2,z=0)=>{const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);return mesh};
+  const pane=(g:THREE.Group,w:number,h:number,material:THREE.Material,x:number,y:number,z:number,back=false)=>{const mesh=new THREE.Mesh(new THREE.PlaneGeometry(w,h),material);mesh.position.set(x,y,z);if(back)mesh.rotation.y=Math.PI;g.add(mesh);return mesh};
   const cylinder=(g:THREE.Group,top:number,bottom:number,h:number,sides:number,material:THREE.Material,x=0,y=h/2,z=0)=>{const mesh=new THREE.Mesh(new THREE.CylinderGeometry(top,bottom,h,sides),material);mesh.position.set(x,y,z);mesh.castShadow=true;g.add(mesh);return mesh};
   const roof=(g:THREE.Group,w:number,d:number,y:number,material:THREE.Material,tall=.28)=>{const mesh=new THREE.Mesh(new THREE.ConeGeometry(Math.max(w,d)*.72,Math.max(.2,Math.min(w,d)*tall),4),material);mesh.position.y=y+Math.max(.1,Math.min(w,d)*tall/2);mesh.rotation.y=Math.PI/4;mesh.castShadow=true;g.add(mesh)};
   const cornice=(g:THREE.Group,w:number,d:number,y:number,material:THREE.Material)=>box(g,w*1.08,.07,d*1.08,material,0,y,0);
-  const door=(g:THREE.Group,w:number,d:number,material:THREE.Material,x=0)=>box(g,Math.min(.18,w*.28),.3,.025,material,x,.15,d/2+.014);
+  const door=(g:THREE.Group,w:number,d:number,material:THREE.Material,x=0)=>pane(g,Math.min(.18,w*.28),.3,material,x,.15,d/2+.015);
   const windows=(g:THREE.Group,w:number,d:number,h:number,rows:number,columns:number,material:THREE.Material,offsetY=0)=>{
     const ww=Math.min(.13,w/(columns*2.25)),wh=Math.min(.18,h/(rows*2.1));
     for(let row=0;row<rows;row++)for(let col=0;col<columns;col++){
       const x=(col-(columns-1)/2)*w/(columns+.25),y=offsetY+(row+1)*h/(rows+1);
-      box(g,ww,wh,.018,material,x,y,d/2+.012);
-      if(row%2===0)box(g,ww,wh,.018,material,-x,y,-d/2-.012);
+      pane(g,ww,wh,material,x,y,d/2+.013);
+      if(row%2===0)pane(g,ww,wh,material,-x,y,-d/2-.013,true);
     }
   };
   const pipe=(g:THREE.Group,w:number,d:number,h:number,material:THREE.Material,side=1)=>{const p=cylinder(g,.022,.03,h*.82,6,material,w*.46*side,h*.43,d*.18);p.rotation.z=.025*side};
@@ -59,7 +60,7 @@ export function createStormhavenArchitectureKit(m:ArchitectureMaterials):Stormha
     const r=randomFrom(seed),g=new THREE.Group(),lift=.18+r()*.18;stilts(g,w,d,lift);box(g,w,h,d,r()>.45?m.plaster:m.wetWood,0,lift+h/2,0);roof(g,w,d,lift+h,m.slate,.35);door(g,w,d,m.wetWood,w*.2);windows(g,w,d,h*.82,Math.max(2,Math.floor(h/.5)),2,m.warmWindow,lift);box(g,w*.48,.05,d*.32,m.wetWood,0,lift+.1,d*.62);pipe(g,w,d,lift+h,m.copper,-1);return finish(g);
   };
   const warehouse=({width:w,depth:d,height:h,seed}:BuildOptions)=>{
-    const r=randomFrom(seed),g=new THREE.Group();box(g,w,h*.78,d,m.soot);box(g,w*.34,h*.5,.03,m.wetWood,0,h*.25,d/2+.02);roof(g,w,d,h*.78,r()>.5?m.copper:m.slate,.18);cornice(g,w,d,h*.78,m.copper);for(let x=-w*.32;x<=w*.32;x+=w*.32)box(g,w*.16,.12,.02,m.window,x,h*.59,d/2+.02);cylinder(g,.055,.075,h*.78,7,m.pipe,w*.34,h*1.02,-d*.16);return finish(g);
+    const r=randomFrom(seed),g=new THREE.Group();box(g,w,h*.78,d,m.soot);box(g,w*.34,h*.5,.03,m.wetWood,0,h*.25,d/2+.02);roof(g,w,d,h*.78,r()>.5?m.copper:m.slate,.18);cornice(g,w,d,h*.78,m.copper);for(let x=-w*.32;x<=w*.32;x+=w*.32)pane(g,w*.16,.12,m.window,x,h*.59,d/2+.021);cylinder(g,.055,.075,h*.78,7,m.pipe,w*.34,h*1.02,-d*.16);return finish(g);
   };
   const glassworks=({width:w,depth:d,height:h,seed}:BuildOptions)=>{
     const r=randomFrom(seed),g=new THREE.Group();box(g,w,h*.62,d,m.soot);cornice(g,w,d,h*.61,m.copper);for(let i=-1;i<=1;i++){const cap=new THREE.Mesh(new THREE.ConeGeometry(w*.24,h*.22,4),m.glass);cap.position.set(i*w*.27,h*.74,0);cap.rotation.y=Math.PI/4;g.add(cap)}for(const side of[-1,1])cylinder(g,.05,.08,h*(.85+r()*.3),8,m.copper,side*w*.35,h*.7,-d*.28);door(g,w,d,m.copper);windows(g,w,d,h*.52,2,3,m.window);return finish(g);

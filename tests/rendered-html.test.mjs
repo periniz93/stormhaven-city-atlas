@@ -50,7 +50,9 @@ test("keeps high detail compatible with constrained mobile hardware", async () =
   assert.match(mapSource, /Old Rope Works/);
   assert.match(mapSource, /Ygnlov House/);
   assert.match(mapSource, /CITY_OUTLINE/);
-  assert.match(mapSource, /addContinuousFabric/);
+  assert.match(mapSource, /addMapFabric/);
+  assert.match(mapSource, /URBAN_MASSES/);
+  assert.match(mapSource, /addCanalRibbon/);
   assert.match(mapSource, /addNeighborhoodLayer/);
   assert.match(mapSource, /streetLayers/);
   assert.match(mapSource, /infrastructure\.visible=false/);
