@@ -24,7 +24,7 @@ test("server-renders the Stormhaven atlas shell", async () => {
   assert.match(html, /Charting the storm/);
   assert.match(html, /Interactive three-dimensional map of Stormhaven/);
   assert.match(html, /Atlas view/);
-  assert.match(html, /Street lens/);
+  assert.match(html, /Neighborhood lens/);
   assert.match(html, /Steamer’s Row/);
   assert.match(html, /Back Canal/);
   assert.match(html, /Mapped landmarks .* gold marks the party trail/);
@@ -50,6 +50,11 @@ test("keeps high detail compatible with constrained mobile hardware", async () =
   assert.match(mapSource, /Old Rope Works/);
   assert.match(mapSource, /Ygnlov House/);
   assert.match(mapSource, /CITY_OUTLINE/);
+  assert.match(mapSource, /addContinuousFabric/);
+  assert.match(mapSource, /addNeighborhoodLayer/);
+  assert.match(mapSource, /streetLayers/);
+  assert.match(mapSource, /infrastructure\.visible=false/);
+  assert.match(mapSource, /setRoutes\]=useState\(false\)/);
   assert.match(css, /@media \(max-width:760px\)/);
   assert.match(css, /backdrop-filter:none/);
   assert.match(css, /\.detail-panel\.is-atlas/);
