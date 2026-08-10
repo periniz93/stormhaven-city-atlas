@@ -11,7 +11,17 @@ export type ArchitectureKind =
   | "bathhouse"
   | "shrine"
   | "stilt-house"
-  | "ruin";
+  | "ruin"
+  | "harbor-house"
+  | "sluice-house"
+  | "prism-house"
+  | "furnace-house"
+  | "whisper-house"
+  | "salon-house"
+  | "cantor-house"
+  | "prayer-house"
+  | "terrace-house"
+  | "sinkhouse";
 
 export type ArchitectureMaterials = {
   stone: THREE.Material;
@@ -37,7 +47,7 @@ export function createStormhavenArchitectureKit(m:ArchitectureMaterials):Stormha
   // Buildings are baked into material buckets before their first render. Reusing
   // normalized source primitives avoids allocating thousands of equivalent
   // BufferGeometry objects while preserving the exact transformed vertices.
-  const shared=<T extends THREE.BufferGeometry>(geometry:T)=>{geometry.userData.sharedSource=true;return geometry},unitBox=shared(new THREE.BoxGeometry(1,1,1)),unitPane=shared(new THREE.PlaneGeometry(1,1)),cylinders=new Map<string,THREE.CylinderGeometry>(),cones=new Map<number,THREE.ConeGeometry>(),domes=new Map<string,THREE.SphereGeometry>();
+  const shared=<T extends THREE.BufferGeometry>(geometry:T)=>{geometry.userData.sharedSource=true;return geometry},unitBox=shared(new THREE.BoxGeometry(1,1,1)),unitPane=shared(new THREE.PlaneGeometry(1,1)),unitOctahedron=shared(new THREE.OctahedronGeometry(1,0)),cylinders=new Map<string,THREE.CylinderGeometry>(),cones=new Map<number,THREE.ConeGeometry>(),domes=new Map<string,THREE.SphereGeometry>();
   const coneGeometry=(sides:number)=>{let geometry=cones.get(sides);if(!geometry){geometry=shared(new THREE.ConeGeometry(1,1,sides));cones.set(sides,geometry)}return geometry};
   const cylinderGeometry=(top:number,bottom:number,sides:number)=>{const ratio=bottom===0?0:top/bottom,key=`${ratio.toFixed(6)}:${sides}`;let geometry=cylinders.get(key);if(!geometry){geometry=shared(new THREE.CylinderGeometry(ratio,1,1,sides));cylinders.set(key,geometry)}return geometry};
   const domeGeometry=(widthSegments:number,heightSegments:number)=>{const key=`${widthSegments}:${heightSegments}`;let geometry=domes.get(key);if(!geometry){geometry=shared(new THREE.SphereGeometry(1,widthSegments,heightSegments,0,Math.PI*2,0,Math.PI/2));domes.set(key,geometry)}return geometry};
@@ -94,6 +104,64 @@ export function createStormhavenArchitectureKit(m:ArchitectureMaterials):Stormha
     const r=randomFrom(seed),g=new THREE.Group();box(g,w*.23,h,d,m.darkStone,-w*.38,h/2,0);box(g,w*.23,h*(.55+r()*.25),d,m.stone,w*.38,h*.3,0);box(g,w*.6,h*.18,d*.2,m.darkStone,0,h*.1,-d*.38);for(let i=0;i<3;i++)cylinder(g,.035,.05,h*(.25+r()*.35),6,m.copper,(r()-.5)*w,h*.2,(r()-.5)*d);return finish(g);
   };
 
-  const builders:Record<ArchitectureKind,(options:BuildOptions)=>THREE.Group>={tenement, "canal-house":canalHouse, warehouse, glassworks, townhouse, "tower-house":towerHouse, greenhouse, bathhouse, shrine, "stilt-house":stiltHouse, ruin};
+  // District houses carry the working logic of their ward in their silhouette.
+  // They deliberately reuse the same normalized primitives and material palette,
+  // so hundreds of local cues still collapse into the existing baked draw buckets.
+  const harborHouse=(options:BuildOptions)=>{
+    const {width:w,depth:d,height:h,seed}=options,r=randomFrom(seed+91),g=canalHouse(options);
+    const crane=cylinder(g,.025,.035,h*.72,6,m.wetWood,w*.38,h*.92,-d*.26);crane.rotation.z=-.05;
+    box(g,w*.72,.045,.045,m.wetWood,w*.08,h*1.25,-d*.26);cylinder(g,.014,.014,h*.32,5,m.copper,-w*.27,h*1.07,-d*.26);
+    box(g,w*.45,.04,d*.24,m.wetWood,(r()-.5)*w*.2,.2,d*.62);return finish(g);
+  };
+  const sluiceHouse=(options:BuildOptions)=>{
+    const {width:w,depth:d,height:h,seed}=options,r=randomFrom(seed+123),g=tenement(options);
+    box(g,w*1.04,.065,d*.28,m.wetWood,0,h*.24,d*.58);box(g,w*1.06,.045,d*.18,m.copper,0,h*.39,d*.61);
+    for(const side of[-1,1])cylinder(g,.025,.035,h*.88,6,m.copper,side*w*.47,h*.46,-d*.28);
+    const live=new THREE.Mesh(unitOctahedron,r()>.45?m.warmWindow:m.window);live.position.set(w*.36,h*.58,d*.54);live.scale.setScalar(.075);g.add(live);return finish(g);
+  };
+  const prismHouse=(options:BuildOptions)=>{
+    const {width:w,depth:d,height:h,seed}=options,r=randomFrom(seed+211),g=townhouse(options);
+    for(const side of[-1,0,1]){const fin=box(g,w*.07,h*(.55+r()*.18),d*.13,m.glass,side*w*.34,h*.74,d*.58);fin.rotation.z=side*.12}
+    box(g,w*.76,.045,d*.34,m.soot,0,h*.36,d*.67);const crown=new THREE.Mesh(unitOctahedron,m.glass);crown.position.set(0,h*1.2,0);crown.scale.set(w*.18,h*.2,w*.18);g.add(crown);return finish(g);
+  };
+  const furnaceHouse=(options:BuildOptions)=>{
+    const {width:w,depth:d,height:h,seed}=options,r=randomFrom(seed+307),g=glassworks(options);
+    const stack=cylinder(g,.065,.11,h*(1.25+r()*.35),8,m.soot,w*.38,h*.8,-d*.34);stack.rotation.z=.025;
+    box(g,w*.78,.09,.09,m.copper,0,h*.78,-d*.46);for(const side of[-1,1])cylinder(g,.035,.045,h*.54,6,m.copper,side*w*.35,h*.76,-d*.46);
+    box(g,w*.36,.18,.035,m.warmWindow,0,h*.24,d*.51);return finish(g);
+  };
+  const whisperHouse=(options:BuildOptions)=>{
+    const {width:w,depth:d,height:h,seed}=options,r=randomFrom(seed+401),g=tenement(options);
+    pane(g,w*.18,.28,m.wetWood,-w*.28,.15,d/2+.021);pane(g,w*.16,.25,m.wetWood,w*.3,.14,-d/2-.021,true);
+    for(const side of[-1,1])box(g,.035,h*.56,.035,m.copper,side*w*.4,h*.86,d*.28);box(g,w*.78,.025,.025,m.copper,0,h*1.13,d*.28);
+    for(let i=0;i<3;i++){const echo=new THREE.Mesh(unitOctahedron,i===1?m.warmWindow:m.glass);echo.position.set((i-1)*w*.24,h*(.78+r()*.14),d*.31);echo.scale.setScalar(.045+i*.008);g.add(echo)}return finish(g);
+  };
+  const salonHouse=(options:BuildOptions)=>{
+    const {width:w,depth:d,height:h,seed}=options,r=randomFrom(seed+503),g=towerHouse(options);
+    box(g,w*.92,.07,d*.34,m.copper,0,h*.62,d*.54);box(g,w*.7,.035,d*.48,m.glass,0,h*.88,d*.48);
+    for(const side of[-1,1])cylinder(g,.035,.045,h*.52,7,m.copper,side*w*.35,h*.7,d*.48);
+    if(r()>.45){const future=new THREE.Mesh(unitOctahedron,m.plaster);future.position.set(w*.24,h*.22,d*.62);future.scale.set(w*.08,h*.2,w*.08);g.add(future)}return finish(g);
+  };
+  const cantorHouse=(options:BuildOptions)=>{
+    const {width:w,depth:d,height:h}=options,g=greenhouse(options);
+    for(const side of[-1,1]){const trunk=cylinder(g,.035,.055,h*1.18,6,m.wetWood,side*w*.38,h*.62,-d*.22);trunk.rotation.z=side*.13;box(g,.045,h*.72,.045,m.glass,side*w*.32,h*.8,-d*.2)}
+    box(g,w*.72,.035,d*.12,m.copper,0,h*.48,d*.58);return finish(g);
+  };
+  const prayerHouse=(options:BuildOptions)=>{
+    const {width:w,depth:d,height:h}=options,g=shrine(options);
+    for(const side of[-1,1]){cylinder(g,.018,.025,h*.9,7,m.copper,side*w*.22,h*1.08,0);box(g,w*.08,.025,d*.78,m.copper,side*w*.22,.035,0)}
+    box(g,w*.82,.025,.025,m.copper,0,.04,d*.22);return finish(g);
+  };
+  const terraceHouse=(options:BuildOptions)=>{
+    const {width:w,depth:d,height:h}=options,g=bathhouse(options);
+    box(g,w*1.08,.08,d*.32,m.stone,0,.08,d*.62);box(g,w*.9,.035,d*.25,m.glass,0,.145,d*.64);
+    for(const side of[-1,1]){const vent=cylinder(g,.035,.045,h*.58,7,m.copper,side*w*.38,h*.76,-d*.27);vent.rotation.z=side*.025}return finish(g);
+  };
+  const sinkhouse=(options:BuildOptions)=>{
+    const {width:w,depth:d,height:h,seed}=options,r=randomFrom(seed+617),g=stiltHouse(options);g.rotation.z+=(r()-.5)*.17;
+    const brace=box(g,.045,h*.92,.045,m.wetWood,w*.48,h*.46,-d*.3);brace.rotation.z=-.34;box(g,w*.9,.045,d*.25,m.wetWood,0,h*.46,d*.58);return finish(g);
+  };
+
+  const builders:Record<ArchitectureKind,(options:BuildOptions)=>THREE.Group>={tenement, "canal-house":canalHouse, warehouse, glassworks, townhouse, "tower-house":towerHouse, greenhouse, bathhouse, shrine, "stilt-house":stiltHouse, ruin, "harbor-house":harborHouse, "sluice-house":sluiceHouse, "prism-house":prismHouse, "furnace-house":furnaceHouse, "whisper-house":whisperHouse, "salon-house":salonHouse, "cantor-house":cantorHouse, "prayer-house":prayerHouse, "terrace-house":terraceHouse, sinkhouse};
   return{create:(kind,options)=>builders[kind](options)};
 }
