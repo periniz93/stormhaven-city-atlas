@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer.js";
-import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { createStormhavenArchitectureKit, type ArchitectureKind, type StormhavenArchitectureKit } from "./stormhaven-architecture";
 
 type District = { name:string; short:string; x:number; y:number; z:number; color:string; kind:string; population:string; description:string };
@@ -71,19 +70,34 @@ function seeded(seed:number){ let t=seed>>>0; return()=>{t+=0x6d2b79f5;let r=Mat
 
 function bakeStaticGroup(group:THREE.Group,name:string,castShadow=true){
   group.updateMatrixWorld(true);
-  const buckets=new Map<THREE.Material,THREE.BufferGeometry[]>(),source:THREE.Mesh[]=[];
+  const buckets=new Map<THREE.Material,THREE.Mesh[]>(),source:THREE.Mesh[]=[];
   group.traverse(object=>{
     if(!(object instanceof THREE.Mesh)||Array.isArray(object.material))return;
-    const geometry=object.geometry.clone();geometry.applyMatrix4(object.matrixWorld);
-    const list=buckets.get(object.material)??[];list.push(geometry);buckets.set(object.material,list);source.push(object);
+    const list=buckets.get(object.material)??[];list.push(object);buckets.set(object.material,list);source.push(object);
   });
   const baked:THREE.Mesh[]=[];
-  buckets.forEach((geometries,material)=>{
-    const geometry=mergeGeometries(geometries,false);geometries.forEach(item=>item.dispose());
-    if(!geometry)return;
+  buckets.forEach((meshes,material)=>{
+    const materialData=material as unknown as Record<string,unknown>,usesUv=["map","alphaMap","aoMap","bumpMap","normalMap","roughnessMap","metalnessMap","displacementMap","emissiveMap","lightMap"].some(key=>Boolean(materialData[key]));
+    let vertexCount=0,indexCount=0,hasNormals=!(material instanceof THREE.MeshBasicMaterial),hasUvs=usesUv;
+    for(const mesh of meshes){const position=mesh.geometry.getAttribute("position");vertexCount+=position.count;indexCount+=mesh.geometry.index?.count??position.count;hasNormals&&=Boolean(mesh.geometry.getAttribute("normal"));hasUvs&&=Boolean(mesh.geometry.getAttribute("uv"))}
+    const positions=new Float32Array(vertexCount*3),normals=hasNormals?new Float32Array(vertexCount*3):undefined,uvs=hasUvs?new Float32Array(vertexCount*2):undefined,indices=vertexCount>65535?new Uint32Array(indexCount):new Uint16Array(indexCount);
+    let vertexOffset=0,indexOffset=0;
+    const normalMatrix=new THREE.Matrix3();
+    for(const mesh of meshes){
+      const geometry=mesh.geometry,position=geometry.getAttribute("position"),normal=hasNormals?geometry.getAttribute("normal"):undefined,uv=hasUvs?geometry.getAttribute("uv"):undefined,m=mesh.matrixWorld.elements;
+      normalMatrix.getNormalMatrix(mesh.matrixWorld);const n=normalMatrix.elements;
+      for(let i=0;i<position.count;i++){
+        const x=position.getX(i),y=position.getY(i),z=position.getZ(i),p=(vertexOffset+i)*3;
+        positions[p]=m[0]*x+m[4]*y+m[8]*z+m[12];positions[p+1]=m[1]*x+m[5]*y+m[9]*z+m[13];positions[p+2]=m[2]*x+m[6]*y+m[10]*z+m[14];
+        if(normal&&normals){const nx=normal.getX(i),ny=normal.getY(i),nz=normal.getZ(i),tx=n[0]*nx+n[3]*ny+n[6]*nz,ty=n[1]*nx+n[4]*ny+n[7]*nz,tz=n[2]*nx+n[5]*ny+n[8]*nz,length=Math.hypot(tx,ty,tz)||1;normals[p]=tx/length;normals[p+1]=ty/length;normals[p+2]=tz/length}
+        if(uv&&uvs){const u=(vertexOffset+i)*2;uvs[u]=uv.getX(i);uvs[u+1]=uv.getY(i)}
+      }
+      const index=geometry.index,count=index?.count??position.count;for(let i=0;i<count;i++)indices[indexOffset+i]=vertexOffset+(index?index.getX(i):i);indexOffset+=count;vertexOffset+=position.count;
+    }
+    const geometry=new THREE.BufferGeometry();geometry.setAttribute("position",new THREE.BufferAttribute(positions,3));if(normals)geometry.setAttribute("normal",new THREE.BufferAttribute(normals,3));if(uvs)geometry.setAttribute("uv",new THREE.BufferAttribute(uvs,2));geometry.setIndex(new THREE.BufferAttribute(indices,1));
     geometry.computeBoundingSphere();const mesh=new THREE.Mesh(geometry,material);mesh.name=`${name}-${baked.length}`;mesh.castShadow=castShadow;mesh.receiveShadow=true;baked.push(mesh);
   });
-  source.forEach(mesh=>mesh.geometry.dispose());group.clear();group.position.set(0,0,0);group.rotation.set(0,0,0);group.scale.set(1,1,1);group.add(...baked);
+  source.forEach(mesh=>{if(!mesh.geometry.userData.sharedSource)mesh.geometry.dispose()});group.clear();group.position.set(0,0,0);group.rotation.set(0,0,0);group.scale.set(1,1,1);group.add(...baked);
   return baked.length;
 }
 
@@ -317,6 +331,7 @@ function buildTerrain(){
 }
 
 function createCity(selectDistrict:(name:string,site?:LocalSite)=>void,mobileGrade=false){
+  const profileStarted=performance.now(),profile:Record<string,number>={};let phaseStarted=profileStarted;
   const city=new THREE.Group(),hitTargets:THREE.Object3D[]=[],labelLayer=new THREE.Group(),detailLayers=new Map<string,THREE.Group>(),streetLayers=new Map<string,THREE.Group>();
   const stone=new THREE.MeshStandardMaterial({color:0x687071,roughness:.86,metalness:.08}),darkStone=new THREE.MeshStandardMaterial({color:0x394245,roughness:.95}),slate=new THREE.MeshStandardMaterial({color:0x46545b,roughness:.82,metalness:.06}),soot=new THREE.MeshStandardMaterial({color:0x29363a,roughness:.88,metalness:.16}),copper=new THREE.MeshStandardMaterial({color:0x9b6847,roughness:.62,metalness:.58}),plaster=new THREE.MeshStandardMaterial({color:0x969087,roughness:.92}),wetWood=new THREE.MeshStandardMaterial({color:0x514037,roughness:.85}),glass=new THREE.MeshPhysicalMaterial({color:0x76e8f2,emissive:0x1e7382,emissiveIntensity:2.7,transparent:true,opacity:.82,roughness:.14,metalness:.2}),water=new THREE.MeshPhysicalMaterial({color:0x1b6671,emissive:0x0c3640,emissiveIntensity:.48,transparent:true,opacity:.9,roughness:.12,metalness:.15}),garden=new THREE.MeshStandardMaterial({color:0x526e4f,roughness:.95});
   city.add(buildTerrain());
@@ -344,6 +359,7 @@ function createCity(selectDistrict:(name:string,site?:LocalSite)=>void,mobileGra
   const canalFabric=new THREE.Group();canalFabric.name="canal-fabric";
   FABRIC_CANALS.forEach((path,index)=>addCanalRibbon(canalFabric,path,index===0||index===2?.62:index<5?.46:.36,harborWater,darkStone));
   bakeStaticGroup(canalFabric,"canals",false);city.add(canalFabric);
+  profile.contextMs=performance.now()-phaseStarted;phaseStarted=performance.now();
   const wards=new THREE.Group(),streets=new THREE.Group();city.add(wards,streets);
   addUrbanGrid(wards,DISTRICTS[0],mobileGrade?14:17,mobileGrade?9:11,15,10,11,lowerArchitecture,["canal-house","warehouse","stilt-house"],.82,{openCore:1.9});
   addUrbanGrid(wards,DISTRICTS[1],mobileGrade?10:13,mobileGrade?7:9,11,7,22,lowerArchitecture,["tenement","warehouse","glassworks"],.75,{openCore:2.05});
@@ -402,14 +418,17 @@ function createCity(selectDistrict:(name:string,site?:LocalSite)=>void,mobileGra
   addMarketStalls(streets,48,15,18,8,2.2,602,wetWood,tealCanvas);
   addMarketStalls(streets,84,36.2,12,5,1.2,603,wetWood,redCanvas);
   [[28.2,24.5],[30.4,24],[32.6,23.5]].forEach(([x,y])=>addBridge(streets,x,y,terrainHeight(x,y)-1.6,.52,1.15,.17,wetWood));
+  profile.fabricGenerateMs=performance.now()-phaseStarted;phaseStarted=performance.now();
   const buildingDraws=bakeStaticGroup(wards,"city-fabric",!mobileGrade);
   const streetDraws=bakeStaticGroup(streets,"street-fabric",false);
+  profile.fabricBakeMs=performance.now()-phaseStarted;phaseStarted=performance.now();
   let neighborhoodDraws=0;
   DISTRICTS.forEach((district,index)=>{
     const layer=new THREE.Group();layer.name=`neighborhood-${district.short.toLowerCase().replaceAll(" ","-")}`;layer.visible=false;
     addNeighborhoodLayer(layer,district,{stone,darkStone,cobble,paleStone,copper,wood:wetWood,water,garden,arc:arcLamp,warm:gasLamp,redCanvas,tealCanvas,glass},7300+index*503);
     neighborhoodDraws+=bakeStaticGroup(layer,layer.name,false);streetLayers.set(district.name,layer);city.add(layer);
   });
+  profile.neighborhoodMs=performance.now()-phaseStarted;phaseStarted=performance.now();
 
   let landmarkDraws=0;
   const beacon=new THREE.Group(),beaconShell=new THREE.Group(),bp=cityPos(25,30,30);beacon.position.copy(bp);
@@ -456,8 +475,8 @@ function createCity(selectDistrict:(name:string,site?:LocalSite)=>void,mobileGra
   STORY_LABELS.forEach(story=>{
     const p=cityPos(story.x,story.y,story.z),element=document.createElement("button");element.className="story-label";element.textContent=story.name;element.setAttribute("aria-label",`Follow the party to ${story.name}`);element.addEventListener("click",event=>{event.stopPropagation();selectDistrict(story.district,{name:story.name,x:story.x,y:story.y,z:story.z,visited:true})});
     const label=new CSS2DObject(element);label.position.set(p.x,p.y+1.15,p.z);labelLayer.add(label);
-  });city.add(labelLayer);
-  return{city,hitTargets,labelLayer,detailLayers,streetLayers,selectionHalo,haloMaterial,infrastructure,beaconLight,staticDrawCalls:buildingDraws+streetDraws+neighborhoodDraws+landmarkDraws};
+  });city.add(labelLayer);profile.landmarkAndLabelMs=performance.now()-phaseStarted;profile.totalMs=performance.now()-profileStarted;
+  return{city,hitTargets,labelLayer,detailLayers,streetLayers,selectionHalo,haloMaterial,infrastructure,beaconLight,staticDrawCalls:buildingDraws+streetDraws+neighborhoodDraws+landmarkDraws,profile};
 }
 
 type SceneApi={focus:(district:District)=>void;focusSite:(district:District,site:LocalSite)=>void;street:(district:District)=>void;cityView:()=>void;setAtlas:(atlas:boolean)=>void;setLabels:(visible:boolean)=>void;setInfrastructure:(visible:boolean)=>void};
@@ -467,6 +486,7 @@ export function StormhavenMap(){
   const [selected,setSelected]=useState<District>(DISTRICTS[3]),[atlas,setAtlas]=useState(false),[labels,setLabels]=useState(true),[routes,setRoutes]=useState(false),[lens,setLens]=useState(false),[reference,setReference]=useState(false),[ready,setReady]=useState(false);
   useEffect(()=>{
     const host=hostRef.current;if(!host)return;
+    const sceneBuildStarted=performance.now();
     const mobileGrade=window.matchMedia("(max-width: 760px)").matches,cores=navigator.hardwareConcurrency||4,deviceMemory=(navigator as Navigator&{deviceMemory?:number}).deviceMemory??4,constrained=mobileGrade||cores<=4||deviceMemory<=4;
     const scene=new THREE.Scene();scene.background=new THREE.Color(mobileGrade?0x19343c:0x0a171c);scene.fog=new THREE.FogExp2(mobileGrade?0x18333a:0x0b1c22,mobileGrade ? .0072 : .0084);
     const camera=new THREE.PerspectiveCamera(mobileGrade?44:38,host.clientWidth/host.clientHeight,.035,260);camera.position.set(mobileGrade?-63:-47,mobileGrade?74:45,mobileGrade?103:64);
@@ -478,13 +498,15 @@ export function StormhavenMap(){
       const horizonMaterial=new THREE.ShaderMaterial({transparent:true,depthWrite:false,depthTest:false,vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,fragmentShader:`varying vec2 vUv;void main(){float radial=1.0-smoothstep(.18,.72,distance(vUv,vec2(.5,.42)));float band=1.0-smoothstep(.08,.58,abs(vUv.y-.38));vec3 low=vec3(.10,.27,.30);vec3 high=vec3(.20,.38,.40);vec3 color=mix(low,high,smoothstep(.12,.78,vUv.y));gl_FragColor=vec4(color,radial*band*.42);}`});
       const horizon=new THREE.Mesh(new THREE.PlaneGeometry(78,38),horizonMaterial);horizon.position.set(3,10,-41);horizon.renderOrder=-10;horizon.frustumCulled=false;scene.add(horizon);
     }
-    const {city,hitTargets,labelLayer,detailLayers,streetLayers,selectionHalo,haloMaterial,infrastructure,beaconLight,staticDrawCalls}=createCity((name,site)=>{const district=DISTRICTS.find(item=>item.name===name);if(district){setSelected(district);setAtlas(false);setLabels(true);setLens(Boolean(site));if(site)apiRef.current?.focusSite(district,site);else apiRef.current?.focus(district)}},mobileGrade);scene.add(city);
+    const cityBuildStarted=performance.now(),{city,hitTargets,labelLayer,detailLayers,streetLayers,selectionHalo,haloMaterial,infrastructure,beaconLight,staticDrawCalls,profile}=createCity((name,site)=>{const district=DISTRICTS.find(item=>item.name===name);if(district){setSelected(district);setAtlas(false);setLabels(true);setLens(Boolean(site));if(site)apiRef.current?.focusSite(district,site);else apiRef.current?.focus(district)}},mobileGrade),cityBuildMs=performance.now()-cityBuildStarted;scene.add(city);
     const clouds=new THREE.Group(),cloudMaterial=new THREE.MeshStandardMaterial({color:mobileGrade?0x263b41:0x16262c,transparent:true,opacity:mobileGrade ? .44 : .56,roughness:1,depthWrite:false}),cloudRandom=seeded(903),cloudCount=mobileGrade?12:22,cloudGeometry=new THREE.IcosahedronGeometry(1,mobileGrade?0:1),cloudMesh=new THREE.InstancedMesh(cloudGeometry,cloudMaterial,cloudCount),cloudMatrix=new THREE.Matrix4();for(let i=0;i<cloudCount;i++){const scale=5+cloudRandom()*9;cloudMatrix.compose(new THREE.Vector3((cloudRandom()-.5)*115,20+cloudRandom()*8,(cloudRandom()-.5)*75),new THREE.Quaternion(),new THREE.Vector3(scale,scale*(.15+cloudRandom()*.1),scale));cloudMesh.setMatrixAt(i,cloudMatrix)}cloudMesh.instanceMatrix.needsUpdate=true;clouds.add(cloudMesh);scene.add(clouds);
     const rainCount=mobileGrade?420:1100,rainPositions=new Float32Array(rainCount*3),rainSpeeds=new Float32Array(rainCount),rainRandom=seeded(8844);for(let i=0;i<rainCount;i++){rainPositions[i*3]=(rainRandom()-.5)*105;rainPositions[i*3+1]=rainRandom()*34;rainPositions[i*3+2]=(rainRandom()-.5)*74;rainSpeeds[i]=7+rainRandom()*7}const rainGeometry=new THREE.BufferGeometry();rainGeometry.setAttribute("position",new THREE.BufferAttribute(rainPositions,3));rainGeometry.setAttribute("aSpeed",new THREE.BufferAttribute(rainSpeeds,1));const rainMaterial=new THREE.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{uTime:{value:0},uOpacity:{value:mobileGrade ? .22 : .35}},vertexShader:`uniform float uTime;attribute float aSpeed;void main(){vec3 p=position;p.y=mod(position.y-uTime*aSpeed+34.0,34.0);p.x-=mod(uTime*aSpeed*.035,3.0);vec4 mv=modelViewMatrix*vec4(p,1.0);gl_PointSize=1.35;gl_Position=projectionMatrix*mv;}`,fragmentShader:`uniform float uOpacity;void main(){gl_FragColor=vec4(.68,.84,.86,uOpacity);}`});const rain=new THREE.Points(rainGeometry,rainMaterial);scene.add(rain);
     const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let pointerDown={x:0,y:0};const onDown=(event:PointerEvent)=>{pointerDown={x:event.clientX,y:event.clientY}},onClick=(event:PointerEvent)=>{if(Math.hypot(event.clientX-pointerDown.x,event.clientY-pointerDown.y)>5)return;const bounds=renderer.domElement.getBoundingClientRect();pointer.x=(event.clientX-bounds.left)/bounds.width*2-1;pointer.y=-(event.clientY-bounds.top)/bounds.height*2+1;raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(hitTargets,false)[0];if(hit?.object.userData.district){const district=DISTRICTS.find(item=>item.name===hit.object.userData.district);if(district){setSelected(district);setAtlas(false);setLabels(true);setLens(false);apiRef.current?.focus(district)}}};renderer.domElement.addEventListener("pointerdown",onDown);renderer.domElement.addEventListener("pointerup",onClick);
-    const tweenCamera=(position:THREE.Vector3,target:THREE.Vector3)=>{const fromPosition=camera.position.clone(),fromTarget=controls.target.clone(),start=performance.now(),duration=950,tick=(time:number)=>{const raw=Math.min(1,(time-start)/duration),eased=1-Math.pow(1-raw,3);camera.position.lerpVectors(fromPosition,position,eased);controls.target.lerpVectors(fromTarget,target,eased);if(raw<1)requestAnimationFrame(tick)};requestAnimationFrame(tick)};
+    let labelsDirty=true;const labelCameraPosition=new THREE.Vector3(),labelCameraQuaternion=new THREE.Quaternion();
+    const tweenCamera=(position:THREE.Vector3,target:THREE.Vector3)=>{const fromPosition=camera.position.clone(),fromTarget=controls.target.clone(),start=performance.now(),duration=950,tick=(time:number)=>{const raw=Math.min(1,(time-start)/duration),eased=1-Math.pow(1-raw,3);camera.position.lerpVectors(fromPosition,position,eased);controls.target.lerpVectors(fromTarget,target,eased);labelsDirty=true;if(raw<1)requestAnimationFrame(tick)};requestAnimationFrame(tick)};
     let activeDistrict:District|undefined;
     const showDistrict=(district?:District,showLabels=true,showNeighborhood=false)=>{
+      labelsDirty=true;
       activeDistrict=district;
       detailLayers.forEach((layer,name)=>{layer.visible=Boolean(district&&showLabels&&name===district.name);layer.children.forEach(child=>{child.visible=!showNeighborhood||Boolean(child.userData.neighborhood)})});
       streetLayers.forEach((layer,name)=>{layer.visible=Boolean(district&&showNeighborhood&&name===district.name)});
@@ -497,20 +519,20 @@ export function StormhavenMap(){
     };
     const cityCamera=()=>new THREE.Vector3(mobileGrade?-63:-47,mobileGrade?74:45,mobileGrade?103:64);
     const lensOffset=(district:District)=>district.name==="The Beacon"?(mobileGrade?new THREE.Vector3(11.5,12,-15):new THREE.Vector3(8.5,7.8,-10.5)):(mobileGrade?new THREE.Vector3(10,11.5,16):new THREE.Vector3(7.2,7.8,10.2));
-    const cityView=()=>{activeDistrict=undefined;setLens(false);detailLayers.forEach(layer=>{layer.visible=false});streetLayers.forEach(layer=>{layer.visible=false});selectionHalo.visible=false;labelLayer.visible=true;clouds.visible=true;tweenCamera(cityCamera(),new THREE.Vector3(4,3.2,0))};
+    const cityView=()=>{labelsDirty=true;activeDistrict=undefined;setLens(false);detailLayers.forEach(layer=>{layer.visible=false});streetLayers.forEach(layer=>{layer.visible=false});selectionHalo.visible=false;labelLayer.visible=true;clouds.visible=true;tweenCamera(cityCamera(),new THREE.Vector3(4,3.2,0))};
     apiRef.current={
       focus:district=>{setLens(false);clouds.visible=true;showDistrict(district,true,false);const target=cityPos(district.x,district.y,district.z),offset=district.name==="The Beacon"?new THREE.Vector3(-6.4,6.7,8.7):new THREE.Vector3(-5.2,4.5,7.1);tweenCamera(target.clone().add(offset),target.clone().add(new THREE.Vector3(0,.9,0)))},
       focusSite:(district,site)=>{setLens(true);clouds.visible=false;showDistrict(district,true,true);const target=cityPos(site.x,site.y,site.z),offset=lensOffset(district);selectionHalo.position.set(target.x,target.y+.14,target.z);selectionHalo.scale.set(.34,.34,1);tweenCamera(target.clone().add(offset),target.clone().add(new THREE.Vector3(0,.55,0)))},
       street:district=>{setLens(true);clouds.visible=false;showDistrict(district,true,true);const [x,y,z]=neighborhoodAnchor(district),target=cityPos(x,y,z),offset=lensOffset(district);tweenCamera(target.clone().add(offset),target.clone().add(new THREE.Vector3(0,.55,0)))},
       cityView,
-      setAtlas:enabled=>{activeDistrict=undefined;setLens(false);detailLayers.forEach(layer=>{layer.visible=false});streetLayers.forEach(layer=>{layer.visible=false});selectionHalo.visible=false;labelLayer.visible=true;clouds.visible=!enabled;if(enabled)tweenCamera(new THREE.Vector3(0,mobileGrade?98:90,.01),new THREE.Vector3(0,0,0));else cityView()},
-      setLabels:visible=>{labelLayer.visible=visible&&!activeDistrict;detailLayers.forEach((layer,name)=>{layer.visible=visible&&name===activeDistrict?.name})},
+      setAtlas:enabled=>{labelsDirty=true;activeDistrict=undefined;setLens(false);detailLayers.forEach(layer=>{layer.visible=false});streetLayers.forEach(layer=>{layer.visible=false});selectionHalo.visible=false;labelLayer.visible=true;clouds.visible=!enabled;if(enabled)tweenCamera(new THREE.Vector3(0,mobileGrade?98:90,.01),new THREE.Vector3(0,0,0));else cityView()},
+      setLabels:visible=>{labelsDirty=true;labelLayer.visible=visible&&!activeDistrict;detailLayers.forEach((layer,name)=>{layer.visible=visible&&name===activeDistrict?.name})},
       setInfrastructure:visible=>{infrastructure.visible=visible}
     };
-    const onResize=()=>{camera.aspect=host.clientWidth/host.clientHeight;camera.updateProjectionMatrix();renderer.setSize(host.clientWidth,host.clientHeight);labelRenderer.setSize(host.clientWidth,host.clientHeight)};window.addEventListener("resize",onResize);
-    const metricWindow=window as Window&{__stormhavenMetrics?:Record<string,number|boolean>},startedAt=performance.now();let animation=0,metricStarted=startedAt,metricFrames=0,adaptiveDone=false;
-    const animate=(now:number)=>{animation=requestAnimationFrame(animate);if(document.hidden)return;const elapsed=(now-startedAt)/1000;controls.update();clouds.position.x=Math.sin(elapsed*.035)*5;rainMaterial.uniforms.uTime.value=elapsed;beaconLight.intensity=48+Math.sin(elapsed*2.7)*8;renderer.render(scene,camera);labelRenderer.render(scene,camera);metricFrames++;const metricSpan=now-metricStarted;if(metricSpan>=1000){const fps=metricFrames*1000/metricSpan,metrics={fps:Math.round(fps),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,points:renderer.info.render.points,staticDrawCalls,pixelRatio:renderer.getPixelRatio(),mobileGrade,shadows:renderer.shadowMap.enabled};metricWindow.__stormhavenMetrics=metrics;host.dataset.performance=JSON.stringify(metrics);if(!adaptiveDone&&now-startedAt>2200){adaptiveDone=true;if(fps<48&&renderer.getPixelRatio()>1){renderer.setPixelRatio(1);renderer.setSize(host.clientWidth,host.clientHeight)}}metricFrames=0;metricStarted=now}};animation=requestAnimationFrame(animate);setReady(true);
-    return()=>{cancelAnimationFrame(animation);window.removeEventListener("resize",onResize);renderer.domElement.removeEventListener("pointerdown",onDown);renderer.domElement.removeEventListener("pointerup",onClick);controls.dispose();renderer.dispose();delete metricWindow.__stormhavenMetrics;delete host.dataset.performance;scene.traverse(object=>{if(object instanceof THREE.Mesh||object instanceof THREE.Points){object.geometry?.dispose();const materials=Array.isArray(object.material)?object.material:[object.material];materials.forEach(material=>material?.dispose())}});host.replaceChildren();apiRef.current=null};
+    const onResize=()=>{camera.aspect=host.clientWidth/host.clientHeight;camera.updateProjectionMatrix();renderer.setSize(host.clientWidth,host.clientHeight);labelRenderer.setSize(host.clientWidth,host.clientHeight);labelsDirty=true};window.addEventListener("resize",onResize);
+    const metricWindow=window as Window&{__stormhavenMetrics?:Record<string,number|boolean>},startedAt=performance.now(),initMs=startedAt-sceneBuildStarted;host.dataset.initMs=initMs.toFixed(1);host.dataset.cityBuildMs=cityBuildMs.toFixed(1);host.dataset.buildProfile=JSON.stringify(Object.fromEntries(Object.entries(profile).map(([key,value])=>[key,Math.round(value)])));let animation=0,metricStarted=startedAt,metricFrames=0,metricWorkMs=0,metricLabelMs=0,metricLabelRenders=0,adaptiveDone=false,firstFrame=true;
+    const animate=(now:number)=>{animation=requestAnimationFrame(animate);if(document.hidden)return;const workStarted=performance.now(),elapsed=(now-startedAt)/1000;controls.update();if(camera.position.distanceToSquared(labelCameraPosition)>1e-8||1-Math.abs(camera.quaternion.dot(labelCameraQuaternion))>1e-12)labelsDirty=true;clouds.position.x=Math.sin(elapsed*.035)*5;rainMaterial.uniforms.uTime.value=elapsed;beaconLight.intensity=48+Math.sin(elapsed*2.7)*8;renderer.render(scene,camera);if(labelsDirty){const labelStarted=performance.now();labelRenderer.render(scene,camera);metricLabelMs+=performance.now()-labelStarted;metricLabelRenders++;labelsDirty=false;labelCameraPosition.copy(camera.position);labelCameraQuaternion.copy(camera.quaternion)}metricWorkMs+=performance.now()-workStarted;if(firstFrame){firstFrame=false;host.dataset.firstFrameMs=(performance.now()-sceneBuildStarted).toFixed(1)}metricFrames++;const metricSpan=now-metricStarted;if(metricSpan>=1000){const fps=metricFrames*1000/metricSpan,metrics={fps:Math.round(fps),frameCpuMs:Number((metricWorkMs/metricFrames).toFixed(2)),labelCpuMs:Number((metricLabelMs/metricFrames).toFixed(2)),labelRenders:metricLabelRenders,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,points:renderer.info.render.points,staticDrawCalls,pixelRatio:renderer.getPixelRatio(),mobileGrade,shadows:renderer.shadowMap.enabled,initMs:Math.round(initMs),cityBuildMs:Math.round(cityBuildMs)};metricWindow.__stormhavenMetrics=metrics;host.dataset.performance=JSON.stringify(metrics);if(!adaptiveDone&&now-startedAt>2200){adaptiveDone=true;if(fps<48&&renderer.getPixelRatio()>1){renderer.setPixelRatio(1);renderer.setSize(host.clientWidth,host.clientHeight)}}metricFrames=0;metricWorkMs=0;metricLabelMs=0;metricLabelRenders=0;metricStarted=now}};animation=requestAnimationFrame(animate);setReady(true);
+    return()=>{cancelAnimationFrame(animation);window.removeEventListener("resize",onResize);renderer.domElement.removeEventListener("pointerdown",onDown);renderer.domElement.removeEventListener("pointerup",onClick);controls.dispose();renderer.dispose();delete metricWindow.__stormhavenMetrics;delete host.dataset.performance;delete host.dataset.initMs;delete host.dataset.cityBuildMs;delete host.dataset.buildProfile;delete host.dataset.firstFrameMs;scene.traverse(object=>{if(object instanceof THREE.Mesh||object instanceof THREE.Points){object.geometry?.dispose();const materials=Array.isArray(object.material)?object.material:[object.material];materials.forEach(material=>material?.dispose())}});host.replaceChildren();apiRef.current=null};
   },[]);
   const choose=(district:District)=>{setSelected(district);setAtlas(false);setLabels(true);setLens(false);apiRef.current?.focus(district)};
   return <main className="stormhaven-shell">

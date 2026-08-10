@@ -37,14 +37,17 @@ test("keeps high detail compatible with constrained mobile hardware", async () =
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
 
-  assert.match(mapSource, /mergeGeometries/);
   assert.match(mapSource, /bakeStaticGroup/);
+  assert.match(mapSource, /vertexCount>65535\?new Uint32Array/);
+  assert.match(mapSource, /sharedSource/);
+  assert.doesNotMatch(mapSource, /mergeGeometries/);
   assert.match(mapSource, /InstancedMesh/);
   assert.match(mapSource, /ShaderMaterial/);
   assert.match(mapSource, /deviceMemory/);
   assert.match(mapSource, /renderer\.shadowMap\.enabled=!constrained/);
   assert.match(mapSource, /fps<48/);
   assert.match(mapSource, /document\.hidden/);
+  assert.match(mapSource, /labelRenders/);
   assert.match(mapSource, /Steamer’s Row/);
   assert.match(mapSource, /Zaps Clinic \/ Old Baths/);
   assert.match(mapSource, /Old Rope Works/);
