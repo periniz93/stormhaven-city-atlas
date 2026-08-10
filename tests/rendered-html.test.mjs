@@ -64,3 +64,13 @@ test("keeps high detail compatible with constrained mobile hardware", async () =
   assert.match(css, /backdrop-filter:none/);
   assert.match(css, /\.detail-panel\.is-atlas/);
 });
+
+test("keeps the southeastern districts on the correct side of the wall", async () => {
+  const mapSource = await readFile(new URL("../app/stormhaven-map.tsx", import.meta.url), "utf8");
+
+  assert.match(mapSource, /name:"The Spillway",short:"Spillway",x:67,y:10,z:5/);
+  assert.match(mapSource, /name:"Foggy Bottoms",short:"Foggy Bottoms",x:78,y:4,z:4/);
+  assert.match(mapSource, /const FOGGY_MARSH_OUTLINE/);
+  assert.match(mapSource, /const spill=cityPos\(67,10,5\)/);
+  assert.match(mapSource, /const wreck=cityPos\(74\.2,2\.7,2\)/);
+});

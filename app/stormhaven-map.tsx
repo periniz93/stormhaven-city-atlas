@@ -10,7 +10,7 @@ type District = { name:string; short:string; x:number; y:number; z:number; color
 
 const DISTRICTS: District[] = [
   { name:"The Sea Ward",short:"Sea Ward",x:11,y:8,z:2,color:"#6ea6b2",kind:"Harbor · Lower city",population:"10,500",description:"Storm-battered quays, stilt warehouses and working canals crowd the western shoreline. The city arrives here wet, indebted, and looking for work." },
-  { name:"The Spillway",short:"Spillway",x:38,y:5,z:3,color:"#a96d46",kind:"Drainage basin · Lower city",population:"2,500",description:"Three sluices carry the upper city’s poison into one low basin. Rust, Arc runoff and cheap lives settle together." },
+  { name:"The Spillway",short:"Spillway",x:67,y:10,z:5,color:"#a96d46",kind:"Drainage basin · Lower city",population:"2,500",description:"Three sluices carry the upper city’s poison into a walled basin at the Lower City’s southeastern reach. Rust, Arc runoff and cheap lives settle together." },
   { name:"Radiance",short:"Radiance",x:22,y:22,z:28,color:"#d98965",kind:"Prism ward · Middle city",population:"6,000",description:"Mirror canyons catch the Beacon’s spill-light and sell it back to the city. Beautiful from a distance. Blinding up close." },
   { name:"The Beacon",short:"Beacon",x:25,y:30,z:30,color:"#75eaff",kind:"Arc works · Western anchor",population:"2,500",description:"A 170-metre stormglass and brass tower cages the lightning. Around its foot, the GlassWorks furnaces never go dark." },
   { name:"The Whispers",short:"Whispers",x:48,y:15,z:15,color:"#8a7cab",kind:"Fog depression · Lower city",population:"6,500",description:"Fog pools between cramped platforms and gives old conversations back at the wrong time. Every door has another exit." },
@@ -18,7 +18,7 @@ const DISTRICTS: District[] = [
   { name:"The Grove",short:"Grove",x:44,y:49,z:42,color:"#76a56e",kind:"Choir terraces · Upper city",population:"1,500",description:"Public gardens rise through Cantor terraces to a restricted canopy level with the bases of Summit’s towers." },
   { name:"The Eye",short:"The Eye",x:84,y:33,z:30,color:"#9dc2c9",kind:"Synod precinct · Upper city edge",population:"4,500",description:"A stormglass cathedral still remembers when lightning chose it. Copper prayer-lines hum beneath a severe public square." },
   { name:"Raincatcher’s Ward",short:"Raincatcher",x:76,y:20,z:38,color:"#58b5b2",kind:"Water terraces · Middle city",population:"3,500",description:"Fifteen gardens step from z48 to z25, aging stormwater into clarity while every lower basin inherits what came before." },
-  { name:"Foggy Bottoms",short:"Foggy Bottoms",x:86,y:7,z:7,color:"#718467",kind:"Swamp edge · Lower city",population:"3,500",description:"Platforms sag into the eastern marsh. Pre-Sundering stone shows through the mud wherever the district has not sunk yet." },
+  { name:"Foggy Bottoms",short:"Foggy Bottoms",x:78,y:4,z:4,color:"#718467",kind:"Outer marsh · Below Raincatcher",population:"3,500",description:"Beyond the southeastern wall, platforms sag into the marsh directly below Lower Raincatcher. Pre-Sundering stone shows through the mud wherever the district has not sunk yet." },
 ];
 
 type CityBand = { name:string; color:string; description:string };
@@ -31,7 +31,7 @@ const CITY_BANDS:CityBand[] = [
 type LocalSite={name:string;x:number;y:number;z?:number;visited?:boolean;note?:string};
 const LOCAL_SITES:Record<string,LocalSite[]>={
   "The Sea Ward":[{name:"Whale-Jaw Arch",x:10,y:10,visited:true},{name:"Beacon’s Echo",x:13,y:6,z:12},{name:"Lantern Fishmarket",x:8.5,y:7},{name:"Leviathan Quays",x:12,y:4,visited:true}],
-  "The Spillway":[{name:"Vane’s Safehouse",x:40.8,y:11.3,z:11,visited:true,note:"Lower-city shelf southwest of the Whispers, above the Spillway approach"},{name:"The Drain",x:37,y:6,visited:true},{name:"Three Sluices",x:40,y:7},{name:"Rust Market",x:35,y:4},{name:"Gutter Gate",x:41,y:3}],
+  "The Spillway":[{name:"Vane’s Safehouse",x:40.8,y:11.3,z:11,visited:true,note:"Lower-city shelf southwest of the Whispers, well above the Spillway approach"},{name:"The Drain",x:66,y:11,visited:true},{name:"Three Sluices",x:69,y:12},{name:"Rust Market",x:64,y:9},{name:"Gutter Gate",x:71,y:8}],
   "Radiance":[{name:"Luminox Hall",x:21,y:24},{name:"Mirror Market",x:24,y:22},{name:"Dark Cells",x:20,y:20},{name:"Glarebound Plaza",x:23,y:19}],
   "The Beacon":[{name:"GlassWorks",x:23,y:29,z:30,visited:true},{name:"Warmth Hall",x:27.4,y:29.2,z:29,visited:true},{name:"Health Wing",x:28.7,y:28.6,z:28,visited:true},{name:"Steamer’s Row",x:30,y:25.2,z:26,visited:true,note:"Lower Glassworks · Back Canal"},{name:"Back Canal",x:31.4,y:23.5,z:22,note:"Shallow working canal parallel to Steamer’s Row"},{name:"Zaps Clinic / Old Baths",x:31.1,y:25.4,z:26,visited:true},{name:"Old Rope Works",x:32.8,y:24.4,z:24,visited:true},{name:"Ygnlov House",x:28.1,y:24.5,z:25,visited:true},{name:"Della’s",x:28.8,y:26.1,z:26,visited:true},{name:"Workers’ Hall",x:30,y:26.4,z:26},{name:"Glassworks Crematorium",x:34,y:27.2,z:27,visited:true},{name:"Guild Mouth",x:24,y:27,z:30,visited:true},{name:"Furnace Belt",x:27,y:31,z:31},{name:"Night Galleries",x:25,y:33,z:31}],
   "The Whispers":[{name:"Murk Street",x:47,y:15,z:15},{name:"The Red Veil",x:51,y:17,z:16},{name:"Drowned Candle",x:45,y:13,z:14},{name:"Moth & Shroud",x:50,y:12,z:15,visited:true}],
@@ -39,7 +39,7 @@ const LOCAL_SITES:Record<string,LocalSite[]>={
   "The Grove":[{name:"The Synapse",x:44,y:51,z:45},{name:"Cantor Terraces",x:41,y:49,z:41},{name:"Listening Walk",x:47,y:46,z:38},{name:"Restricted Canopy",x:44,y:53,z:45}],
   "The Eye":[{name:"Grand Cathedral",x:84,y:33,z:30},{name:"Zephyr’s Pavilion",x:86,y:35,z:31},{name:"Brawl Courts",x:81,y:32,z:30},{name:"Shrine Ring",x:85,y:30,z:29}],
   "Raincatcher’s Ward":[{name:"Jade Terrace",x:78,y:24,z:42},{name:"Silverstream",x:76,y:21,z:37},{name:"Clearwater House",x:74,y:18,z:32},{name:"Sixty-Day Basin",x:72,y:16,z:28}],
-  "Foggy Bottoms":[{name:"Sweet Susie Wreck",x:82.2,y:5.7,z:2,visited:true},{name:"Slanted Market",x:85,y:9,z:8},{name:"Mirefoot Ruins",x:89,y:7,z:4},{name:"Blackwater Complex",x:83,y:6,z:7},{name:"Bog-Runner Mooring",x:90,y:4,z:2}],
+  "Foggy Bottoms":[{name:"Sweet Susie Wreck",x:74.2,y:2.7,z:2,visited:true},{name:"Slanted Market",x:77,y:6,z:6},{name:"Mirefoot Ruins",x:81,y:4,z:3},{name:"Blackwater Complex",x:75,y:3,z:5},{name:"Bog-Runner Mooring",x:82,y:1,z:1}],
 };
 
 const STORY_LABELS=[
@@ -59,7 +59,8 @@ function terrainHeight(x:number,y:number){
   h+=3.5*Math.exp(-((x-44)**2)/95-((y-49)**2)/70);
   h-=15*Math.exp(-((x-7)**2)/180-((y-8)**2)/170);
   h-=13*Math.exp(-((x-96)**2)/150-((y-8)**2)/170);
-  h-=5.5*Math.exp(-((x-38)**2)/85-((y-5)**2)/40);
+  h-=5.5*Math.exp(-((x-67)**2)/85-((y-10)**2)/40);
+  h-=2.8*Math.exp(-((x-78)**2)/105-((y-4)**2)/35);
   h-=1.8*Math.exp(-((x-48)**2)/90-((y-15)**2)/65);
   h+=6*Math.exp(-((x-25)**2)/125-((y-30)**2)/90);
   h+=5*Math.exp(-((x-84)**2)/95-((y-33)**2)/80);
@@ -193,26 +194,27 @@ function addUrbanGrid(group:THREE.Group,district:District,columns:number,rows:nu
     if(details.openCore&&Math.hypot(localX,localY)<details.openCore)continue;
     if((localX/(spanX*.54))**2+(localY/(spanY*.55))**2>1)continue;
     const x=district.x+localX+(random()-.5)*sx*.32,y=district.y+localY+(random()-.5)*sy*.28;
-    if(!pointInPolygon(x,y,CITY_OUTLINE)&&district.name!=="The Spillway"&&district.name!=="The Sea Ward")continue;
+    if(district.name==="Foggy Bottoms"){if(!pointInPolygon(x,y,FOGGY_MARSH_OUTLINE))continue}
+    else if(!pointInPolygon(x,y,CITY_OUTLINE)&&district.name!=="The Sea Ward")continue;
     const w=sx*S*(.54+random()*.27),d=sy*S*(.54+random()*.27),h=(.72+random()*1.62)*heightScale,kind=kinds[Math.floor(random()*kinds.length)],building=kit.create(kind,{width:w,depth:d,height:h,seed:seed+row*97+column*13}),p=cityPos(x,y);
     building.position.copy(p);building.rotation.y=(random()-.5)*.2;if(details.lean)building.rotation.z+=(random()-.5)*details.lean;group.add(building);
   }
 }
 
 const DISTRICT_FOOTPRINTS:Record<string,[number,number]>={
-  "The Sea Ward":[8,5.5],"The Spillway":[6,4.2],Radiance:[6.5,5],"The Beacon":[7,6],"The Whispers":[9,6],
-  Summit:[8,5],"The Grove":[7,5],"The Eye":[6,5],"Raincatcher’s Ward":[7.5,6.5],"Foggy Bottoms":[8,5],
+  "The Sea Ward":[8,5.5],"The Spillway":[7,4.5],Radiance:[6.5,5],"The Beacon":[7,6],"The Whispers":[9,6],
+  Summit:[8,5],"The Grove":[7,5],"The Eye":[6,5],"Raincatcher’s Ward":[7.5,6.5],"Foggy Bottoms":[7.5,4.5],
 };
 
 const NEIGHBORHOOD_ANCHORS:Record<string,[number,number,number?]>={
-  "The Sea Ward":[10.5,8,3],"The Spillway":[40.2,10.1,10],Radiance:[22.4,21.5,27],"The Beacon":[30,25.2,26],"The Whispers":[48,15,15],
-  Summit:[56.5,51.5,44],"The Grove":[44,49,42],"The Eye":[81.5,31.5,30],"Raincatcher’s Ward":[76,20,38],"Foggy Bottoms":[86,7,7],
+  "The Sea Ward":[10.5,8,3],"The Spillway":[67,10,5],Radiance:[22.4,21.5,27],"The Beacon":[30,25.2,26],"The Whispers":[48,15,15],
+  Summit:[56.5,51.5,44],"The Grove":[44,49,42],"The Eye":[81.5,31.5,30],"Raincatcher’s Ward":[76,20,38],"Foggy Bottoms":[78,4,4],
 };
 
 function neighborhoodAnchor(district:District){return NEIGHBORHOOD_ANCHORS[district.name]??[district.x,district.y,district.z]}
 
 const FABRIC_STREETS:Array<Array<[number,number]>>=[
-  [[7,9],[18,13],[29,14],[40,15],[52,15],[65,17],[78,14],[91,8]],
+  [[7,9],[18,13],[29,14],[40,15],[52,15],[58,13],[64,11],[68,10],[72,8]],
   [[16,20],[27,22],[39,21],[52,22],[64,25],[76,29],[86,32]],
   [[20,28],[31,32],[43,37],[54,44],[62,51],[72,46],[83,36]],
   [[27,29],[35,37],[44,48],[52,51],[60,54]],
@@ -221,11 +223,11 @@ const FABRIC_STREETS:Array<Array<[number,number]>>=[
 const FABRIC_CANALS:Array<Array<[number,number]>>=[
   [[47,2],[47,7],[44,12],[40,17],[35,22],[32,28]],
   [[27,23.7],[30,24.1],[34,23.1],[38,21],[42,18]],
-  [[80,30],[81,25],[82,20],[83,15],[84,10],[86,4]],
+  [[80,30],[79,26],[78,22],[76,18],[74,14],[75,9],[77,4]],
   [[46,15],[40,14],[32,12],[24,10],[16,8],[10,6]],
-  [[70,14],[64,14],[58,14],[52,14],[46,14]],
+  [[77,4],[73,7],[68,10],[63,12],[58,14],[52,14],[46,14]],
   [[19,10],[22,14],[26,19],[29,25],[31,30]],
-  [[39,7],[39,12],[37,17],[38,22],[42,27]],
+  [[67,7],[67,10],[65,14],[64,18],[66,22],[70,27]],
   [[43,23],[48,26],[54,29],[61,30],[68,27],[75,25]],
 ];
 
@@ -233,13 +235,13 @@ type FabricBand="lower"|"mid"|"upper";
 type UrbanMass={name:string;points:Array<[number,number]>;band:FabricBand;kinds:ArchitectureKind[];height:number;angle:number;spacing:number;voidChance:number};
 const URBAN_MASSES:UrbanMass[]=[
   {name:"western shelf",points:[[6,7],[10,17],[16,27],[24,31],[30,26],[29,18],[22,10],[14,4]],band:"lower",kinds:["canal-house","warehouse","tenement","stilt-house"],height:.68,angle:.16,spacing:1.48,voidChance:.1},
-  {name:"lower-city crescent",points:[[17,8],[22,15],[29,22],[39,25],[49,22],[58,18],[65,13],[60,9],[52,10],[44,12],[37,11],[30,9],[24,6]],band:"lower",kinds:["tenement","canal-house","warehouse","townhouse"],height:.73,angle:.04,spacing:1.42,voidChance:.08},
+  {name:"lower-city crescent",points:[[17,8],[22,15],[29,22],[39,25],[49,22],[58,18],[65,15],[72,11],[70,8],[64,8],[58,10],[52,10],[44,12],[37,11],[30,9],[24,6]],band:"lower",kinds:["tenement","canal-house","warehouse","townhouse"],height:.73,angle:.04,spacing:1.42,voidChance:.08},
   {name:"harbor-edge platforms",points:[[40,8],[45,12],[52,14],[61,13],[70,9],[75,5],[68,3],[59,5],[51,7],[45,6]],band:"lower",kinds:["canal-house","stilt-house","warehouse"],height:.57,angle:-.08,spacing:1.5,voidChance:.13},
   {name:"mid-city plateau",points:[[25,22],[30,31],[40,39],[52,43],[65,40],[78,33],[79,26],[70,20],[58,18],[46,20],[36,18]],band:"mid",kinds:["tenement","townhouse","canal-house","glassworks"],height:.84,angle:.035,spacing:1.4,voidChance:.075},
   {name:"summit skirt",points:[[34,34],[42,45],[53,52],[67,49],[79,40],[73,33],[61,35],[49,32],[41,30]],band:"upper",kinds:["townhouse","tower-house","shrine","bathhouse"],height:.94,angle:.08,spacing:1.52,voidChance:.12},
   {name:"eye approach",points:[[67,29],[75,38],[86,40],[91,33],[87,26],[78,23],[72,24]],band:"upper",kinds:["townhouse","shrine","tower-house"],height:.82,angle:-.04,spacing:1.58,voidChance:.15},
   {name:"raincatcher housing",points:[[67,14],[75,14],[84,18],[89,25],[86,32],[80,34],[74,28],[67,23]],band:"mid",kinds:["bathhouse","canal-house","greenhouse","townhouse"],height:.68,angle:.2,spacing:1.52,voidChance:.14},
-  {name:"eastern marsh edge",points:[[75,5],[82,2],[92,3],[96,10],[91,16],[84,16],[78,12]],band:"lower",kinds:["stilt-house","ruin","canal-house"],height:.5,angle:-.2,spacing:1.62,voidChance:.2},
+  {name:"eastern marsh edge",points:[[69,0],[70,7],[76,9],[84,9],[91,6],[92,0],[84,-1],[75,-1]],band:"lower",kinds:["stilt-house","ruin","canal-house"],height:.5,angle:-.2,spacing:1.62,voidChance:.2},
 ];
 
 function distanceToSegment(x:number,y:number,a:[number,number],b:[number,number]){
@@ -262,7 +264,8 @@ function addMapFabric(group:THREE.Group,kits:FabricKits,mobileGrade:boolean){
     let accepted=0;
     for(let attempt=0;attempt<target*22&&accepted<target;attempt++){
       const px=minX+random()*(maxX-minX),py=minY+random()*(maxY-minY);
-      if(!pointInPolygon(px,py,mass.points)||!pointInPolygon(px,py,CITY_OUTLINE))continue;
+      const mappedLand=mass.name==="eastern marsh edge"?FOGGY_MARSH_OUTLINE:CITY_OUTLINE;
+      if(!pointInPolygon(px,py,mass.points)||!pointInPolygon(px,py,mappedLand))continue;
       if(distanceToPaths(px,py,FABRIC_STREETS)<.62||distanceToPaths(px,py,FABRIC_CANALS)<.92)continue;
       const inWard=DISTRICTS.some(district=>{const [rx,ry]=DISTRICT_FOOTPRINTS[district.name]??[6,5];return((px-district.x)/(rx*.92))**2+((py-district.y)/(ry*.92))**2<1});
       if(inWard||occupied.some(([ox,oy])=>Math.hypot(px-ox,py-oy)<step*(.58+random()*.1))||random()<mass.voidChance)continue;
@@ -361,9 +364,10 @@ function addContourLine(group:THREE.Group,points:Array<[number,number]>,color:nu
   const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,Math.max(24,points.length*8),width,4,false),new THREE.MeshBasicMaterial({color,transparent:true,opacity,depthWrite:false}));tube.renderOrder=-2;group.add(tube);return tube;
 }
 const CITY_OUTLINE:Array<[number,number]>=[
-  [2,2],[3,14],[7,29],[11,43],[20,53],[34,59],[51,61],[68,58],[82,51],[93,41],[98,28],[98,14],[94,4],
-  [85,0],[76,3],[70,8],[64,11],[58,13],[51,14],[45,13],[39,12],[34,13],[29,13],[24,11],[20,7],[15,3],[9,0],
+  [2,2],[3,14],[7,29],[11,43],[20,53],[34,59],[51,61],[68,58],[82,51],[93,41],[98,28],[98,14],
+  [90,12],[82,10],[76,8],[70,7],[66,8],[64,11],[58,13],[51,14],[45,13],[39,12],[34,13],[29,13],[24,11],[20,7],[15,3],[9,0],
 ];
+const FOGGY_MARSH_OUTLINE:Array<[number,number]>=[[68,-1],[69,5],[70,7],[76,8],[82,10],[90,12],[97,11],[96,3],[90,-1]];
 function pointInPolygon(x:number,y:number,polygon:Array<[number,number]>){
   let inside=false;
   for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){
@@ -374,8 +378,8 @@ function pointInPolygon(x:number,y:number,polygon:Array<[number,number]>){
 }
 function buildTerrain(){
   const geometry=new THREE.BufferGeometry(),vertices:number[]=[],colors:number[]=[],indices:number[]=[],nx=92,ny=58,color=new THREE.Color();
-  const isLand=(x:number,y:number)=>pointInPolygon(x,y,CITY_OUTLINE);
-  for(let iy=0;iy<ny;iy++){const y=iy/(ny-1)*62-1;for(let ix=0;ix<nx;ix++){const x=ix/(nx-1)*102-1,h=terrainHeight(x,y),p=cityPos(x,y,h);vertices.push(p.x,p.y,p.z);color.set(h<8?"#36504d":h<22?"#45564f":h<38?"#595b52":"#686457");const n=(Math.sin(x*2.13+y*.71)+1)*.018-.012;colors.push(color.r+n,color.g+n,color.b+n)}}
+  const isLand=(x:number,y:number)=>pointInPolygon(x,y,CITY_OUTLINE)||pointInPolygon(x,y,FOGGY_MARSH_OUTLINE);
+  for(let iy=0;iy<ny;iy++){const y=iy/(ny-1)*62-1;for(let ix=0;ix<nx;ix++){const x=ix/(nx-1)*102-1,h=terrainHeight(x,y),p=cityPos(x,y,h),marsh=pointInPolygon(x,y,FOGGY_MARSH_OUTLINE)&&!pointInPolygon(x,y,CITY_OUTLINE);vertices.push(p.x,p.y,p.z);color.set(marsh?"#314a43":h<8?"#36504d":h<22?"#45564f":h<38?"#595b52":"#686457");const n=(Math.sin(x*2.13+y*.71)+1)*.018-.012;colors.push(color.r+n,color.g+n,color.b+n)}}
   for(let iy=0;iy<ny-1;iy++)for(let ix=0;ix<nx-1;ix++){const a=iy*nx+ix,b=a+1,c=a+nx,d=c+1,x=(ix+.5)/(nx-1)*102-1,y=(iy+.5)/(ny-1)*62-1;if(isLand(x,y))indices.push(a,c,b,b,c,d)}
   geometry.setAttribute("position",new THREE.Float32BufferAttribute(vertices,3));geometry.setAttribute("color",new THREE.Float32BufferAttribute(colors,3));geometry.setIndex(indices);geometry.computeVertexNormals();
   const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.94,metalness:.025,flatShading:true}));mesh.receiveShadow=true;return mesh;
@@ -396,11 +400,11 @@ function createCity(selectDistrict:(name:string,site?:LocalSite)=>void,mobileGra
   const context=new THREE.Group();context.name="city-context";city.add(context);
   // Broad elevation bands keep the 3D districts legible as one city: lower docks and
   // basins, the working middle terraces, then the dry upper ridge and canopy.
-  addMapPatch(context,[[5,1],[94,1],[94,12],[87,16],[73,20],[56,19],[39,18],[24,16],[10,13],[5,10]],bandLower);
+  addMapPatch(context,[[5,1],[68,1],[69,7],[76,9],[84,11],[90,13],[87,16],[73,20],[56,19],[39,18],[24,16],[10,13],[5,10]],bandLower);
   addMapPatch(context,[[15,15],[87,18],[87,31],[80,36],[67,37],[53,33],[39,29],[22,29],[15,23]],bandMid);
   addMapPatch(context,[[30,31],[81,34],[80,47],[70,53],[54,57],[39,49],[31,40]],bandUpper);
   // Map-like contour seams echo the hand-painted source without flattening the 3D terrain.
-  addContourLine(context,[[12,8],[20,5],[30,6],[40,8],[50,10],[60,11],[70,12],[80,11],[88,9],[92,6]],0x758b83,.025,.35);
+  addContourLine(context,[[12,8],[20,5],[30,6],[40,8],[50,10],[60,11],[68,10],[76,9],[84,11],[90,13]],0x758b83,.025,.35);
   addContourLine(context,[[14,12],[25,10],[35,12],[45,14],[55,16],[62,17],[70,17],[78,16],[84,14],[88,11]],0x7d948a,.028,.38);
   addContourLine(context,[[18,18],[28,16],[38,18],[48,22],[58,23],[68,24],[78,22],[82,20]],0x94a69b,.032,.42);
   addContourLine(context,[[20,24],[30,22],[40,24],[50,26],[62,30],[70,32],[78,32],[86,28]],0xb2b4a0,.035,.44);
@@ -448,7 +452,7 @@ function createCity(selectDistrict:(name:string,site?:LocalSite)=>void,mobileGra
   addStreet(streets,[[26.2,27.4],[29,27.1],[32,26.8],[35,26.4]],.16,cobble,.12);
   addStreet(streets,[[81,31],[84,33],[88,37]],.5,paleStone);
   addStreet(streets,[[71,43],[74,45],[78,47]],.2,paleStone);
-  addStreet(streets,[[83,9],[86,7],[91,5]],.2,wetWood,.16);
+  addStreet(streets,[[70,7],[74,6],[78,4],[83,2]],.2,wetWood,.16);
   addStreet(streets,[[7,9],[11,8],[15,9]],.3,wetWood,.15);
   addStairs(streets,[19,19,17],[22,24,26],12,.42,paleStone);
   addStairs(streets,[31,30,30],[35,35,35],10,.38,paleStone);
@@ -516,17 +520,17 @@ function createCity(selectDistrict:(name:string,site?:LocalSite)=>void,mobileGra
   addDetailArch(citySignatures,cityPos(10,10,3),.88,1.35,.8,paleStone,.08);
   const echoBase=cityPos(13,6,12);addDetailCylinder(citySignatures,echoBase,3.4,.34,copper);const echoCrown=echoBase.clone();echoCrown.y+=3.55;addDetailOctahedron(citySignatures,echoCrown,.42,glass);addDetailCone(citySignatures,echoCrown.clone().add(new THREE.Vector3(0,.3,0)),.8,.38,slate);
 
-  const spill=cityPos(38,5,3);
+  const spill=cityPos(67,10,5);
   [1.1,1.8,2.6].forEach((radius,i)=>{const ring=new THREE.Mesh(new THREE.TorusGeometry(radius,.1,6,36),i===0?water:copper);ring.rotation.x=Math.PI/2;ring.position.set(spill.x,spill.y+.04+i*.04,spill.z);citySignatures.add(ring)});
-  for(const gateX of[35.8,38,40.2]){const left=cityPos(gateX,6.4,4),right=cityPos(gateX,4.9,4);addDetailCylinder(citySignatures,left,1.25,.09,copper);addDetailCylinder(citySignatures,right,1.25,.09,copper);left.y+=1.12;right.y+=1.12;addDetailBeam(citySignatures,left,right,.12,darkStone);const warning=left.clone().lerp(right,.5);warning.y+=.24;addDetailOctahedron(citySignatures,warning,.11,arcLamp)}
+  for(const gateX of[64.8,67,69.2]){const left=cityPos(gateX,11.4,6),right=cityPos(gateX,9.9,5);addDetailCylinder(citySignatures,left,1.25,.09,copper);addDetailCylinder(citySignatures,right,1.25,.09,copper);left.y+=1.12;right.y+=1.12;addDetailBeam(citySignatures,left,right,.12,darkStone);const warning=left.clone().lerp(right,.5);warning.y+=.24;addDetailOctahedron(citySignatures,warning,.11,arcLamp)}
 
   const whisperRandom=seeded(4515);
   for(let i=0;i<14;i++){const x=43+whisperRandom()*10,y=12+whisperRandom()*6,p=cityPos(x,y);addDetailCylinder(citySignatures,p,.72,.03,copper,(whisperRandom()-.5)*.12);p.y+=.83;addDetailOctahedron(citySignatures,p,.075+whisperRandom()*.035,i%4===0?gasLamp:glass)}
 
-  const wreck=cityPos(82.2,5.7,2),wreckBow=wreck.clone().add(new THREE.Vector3(-1.6,.28,.5)),wreckStern=wreck.clone().add(new THREE.Vector3(1.55,-.05,-.45));addDetailBeam(citySignatures,wreckBow,wreckStern,.3,wetWood);
+  const wreck=cityPos(74.2,2.7,2),wreckBow=wreck.clone().add(new THREE.Vector3(-1.6,.28,.5)),wreckStern=wreck.clone().add(new THREE.Vector3(1.55,-.05,-.45));addDetailBeam(citySignatures,wreckBow,wreckStern,.3,wetWood);
   for(const offset of[-1.05,-.52,0,.52,1.05]){const ribBase=wreck.clone().add(new THREE.Vector3(offset,0,-offset*.28)),ribTop=ribBase.clone().add(new THREE.Vector3(0,.72,.12));addDetailBeam(citySignatures,ribBase,ribTop,.06,wetWood)}
   addDetailBeam(citySignatures,wreck,wreck.clone().add(new THREE.Vector3(.25,2.35,-.08)),.075,wetWood);
-  for(const [x,y,radius] of [[80.5,8,.8],[86.5,6.2,1.05],[91,9,.72]] as Array<[number,number,number]>)addDetailCylinder(citySignatures,cityPos(x,y,1.4),.06,radius,water);
+  for(const [x,y,radius] of [[72.5,5.8,.8],[78,3.5,1.05],[83,5.5,.72]] as Array<[number,number,number]>)addDetailCylinder(citySignatures,cityPos(x,y,1.4),.06,radius,water);
   landmarkDraws+=bakeStaticGroup(citySignatures,"district-signatures",false);city.add(citySignatures);
 
   const infrastructure=new THREE.Group();infrastructure.name="infrastructure";
