@@ -1,100 +1,47 @@
-# vinext-starter
+# Stormhaven City Atlas
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+An interactive Three.js city atlas for **Stormhaven**, a D&D 5e campaign set in a vertical, rain-soaked city powered by captured lightning. The city is modeled at three scales — whole-city silhouette and elevation hierarchy, per-ward architecture, and orientable neighborhood lenses — aligned to a painted cartographer's reference map.
 
-## Prerequisites
+Live: [map.stormhaven.online](https://map.stormhaven.online)
 
-- Node.js `>=22.13.0`
+## Layout
 
-## Quick Start
+| Path | Purpose |
+|------|---------|
+| `app/stormhaven-map.tsx` | City model: land/wall outlines, district coordinates, elevation bands, canals, streets, dense urban fabric, landmarks, labels, cameras, renderer instrumentation |
+| `app/stormhaven-architecture.ts` | Reusable architecture kit (massing, silhouettes, working-system props) |
+| `app/globals.css` | Responsive interface and visual treatment |
+| `ops/map-server.mjs` | Local production server (port `30001`) |
+| `ops/start-map-atlas.cmd` / `start-map-tunnel.cmd` | Windows launchers for the production server and the cloudflared tunnel |
+| `tests/rendered-html.test.mjs` | Rendered-HTML, performance-contract, and geography regression tests |
+| `public/assets/stormhaven-cartographer-reference.webp` | Painted city-map reference the atlas is aligned to |
+
+## Stack
+
+Next.js (vinext on Cloudflare) + React 19 + Three.js + Tailwind 4. Optional Drizzle/D1 bindings are declared in `.openai/hosting.json`.
+
+## Quick start
+
+Prerequisites: Node.js `>=22.13.0`
 
 ```bash
 npm install
-npm run dev
-npm run build
+npm run dev     # local dev server
+npm run build   # production build
+npm test        # build + rendered-HTML and geography regression tests
+npm run lint
 ```
 
-This starter does not use `wrangler.jsonc`.
+## Local production and public tunnel
 
-## Included Shape
+On the host machine for `map.stormhaven.online`, two scheduled tasks keep the site up:
 
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
+- **Stormhaven Map Atlas** — production server on `127.0.0.1:30001`
+- **Stormhaven Map Tunnel** — cloudflared tunnel serving `map.stormhaven.online` (local listener `30002`)
 
-## Workspace Auth Headers
+Verify after (re)starting: `http://127.0.0.1:30001/` returns HTTP 200, then `https://map.stormhaven.online/` returns HTTP 200 and references the same `stormhaven-map-*.js` bundle as localhost.
 
-Signed-in visitors receive both `oai-authenticated-user-id` and `oai-authenticated-user-email`. Private Sites require every visitor to sign in; public Sites may also have anonymous visitors, for whom neither header is present.
+## Notes
 
-The user ID is stable for the same user on the same Site and different across Sites. Email and name are intended for display or contact purposes.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const userId = requestHeaders.get("oai-authenticated-user-id");
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
-```
-
-## Optional Dispatch-Owned ChatGPT Sign-In
-
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
-
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
-
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
-
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
-
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
-
-## Useful Commands
-
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
-
-## Learn More
-
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+- Workspace deployments inject `oai-authenticated-user-*` headers for signed-in visitors; anonymous visitors have none. See `app/chatgpt-auth.ts` for the optional sign-in helpers.
+- Geography is canon-first: stated relative positions from the painted map and campaign notes take precedence over procedural convenience, and explicit corrections are protected by regression tests.
