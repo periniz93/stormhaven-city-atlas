@@ -21,6 +21,25 @@ const contentTypes = {
   ".ico": "image/x-icon",
 };
 
+const securityHeaders = {
+  "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests",
+  "Cross-Origin-Opener-Policy": "same-origin",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+  "Referrer-Policy": "no-referrer",
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+};
+
+function withSecurityHeaders(headers = {}) {
+  const secured = { ...headers };
+  const protectedNames = new Set(Object.keys(securityHeaders).map((name) => name.toLowerCase()));
+  for (const name of Object.keys(secured)) {
+    if (protectedNames.has(name.toLowerCase())) delete secured[name];
+  }
+  return { ...secured, ...securityHeaders };
+}
+
 const upstream = spawn(process.execPath, [vinextCli, "start", "--hostname", "127.0.0.1", "--port", String(upstreamPort)], {
   cwd: root,
   stdio: "inherit",
@@ -40,14 +59,14 @@ function serveStatic(req, res) {
   if (!pathname.startsWith("/assets/") && pathname !== "/favicon.ico") return false;
   const filePath = safeStaticPath(pathname);
   if (!filePath || !existsSync(filePath) || !statSync(filePath).isFile()) {
-    res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+    res.writeHead(404, withSecurityHeaders({ "Content-Type": "text/plain; charset=utf-8" }));
     res.end("Not Found");
     return true;
   }
-  res.writeHead(200, {
+  res.writeHead(200, withSecurityHeaders({
     "Content-Type": contentTypes[extname(filePath).toLowerCase()] ?? "application/octet-stream",
     "Cache-Control": pathname.startsWith("/assets/") ? "public, max-age=31536000, immutable" : "public, max-age=3600",
-  });
+  }));
   createReadStream(filePath).pipe(res);
   return true;
 }
@@ -61,11 +80,11 @@ const server = createServer((req, res) => {
     method: req.method,
     headers: { ...req.headers, host: `127.0.0.1:${upstreamPort}` },
   }, (upstreamRes) => {
-    res.writeHead(upstreamRes.statusCode ?? 502, upstreamRes.headers);
+    res.writeHead(upstreamRes.statusCode ?? 502, withSecurityHeaders(upstreamRes.headers));
     upstreamRes.pipe(res);
   });
   upstreamReq.on("error", () => {
-    if (!res.headersSent) res.writeHead(502, { "Content-Type": "text/plain; charset=utf-8" });
+    if (!res.headersSent) res.writeHead(502, withSecurityHeaders({ "Content-Type": "text/plain; charset=utf-8" }));
     res.end("Map server is warming up");
   });
   req.pipe(upstreamReq);

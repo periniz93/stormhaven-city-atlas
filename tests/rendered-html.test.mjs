@@ -18,6 +18,10 @@ test("server-renders the Stormhaven atlas shell", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
+  assert.match(response.headers.get("content-security-policy") ?? "", /frame-ancestors 'none'/);
+  assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+  assert.equal(response.headers.get("x-frame-options"), "DENY");
+  assert.equal(response.headers.get("referrer-policy"), "no-referrer");
 
   const html = await response.text();
   assert.match(html, /<title>Stormhaven .* The City Beneath the Storm<\/title>/i);
@@ -57,6 +61,10 @@ test("keeps high detail compatible with constrained mobile hardware", async () =
   assert.match(mapSource, /URBAN_MASSES/);
   assert.match(mapSource, /addCanalRibbon/);
   assert.match(mapSource, /addNeighborhoodLayer/);
+  assert.match(mapSource, /NEIGHBORHOOD_PLANS/);
+  assert.match(mapSource, /ensureNeighborhood/);
+  assert.match(mapSource, /coarseFabric\.forEach/);
+  assert.match(mapSource, /The lens follows the ward's real circulation/);
   assert.match(mapSource, /streetLayers/);
   assert.match(mapSource, /infrastructure\.visible=false/);
   assert.match(mapSource, /setRoutes\]=useState\(false\)/);
@@ -73,4 +81,7 @@ test("keeps the southeastern districts on the correct side of the wall", async (
   assert.match(mapSource, /const FOGGY_MARSH_OUTLINE/);
   assert.match(mapSource, /const spill=cityPos\(67,10,5\)/);
   assert.match(mapSource, /const wreck=cityPos\(74\.2,2\.7,2\)/);
+  assert.match(mapSource, /x=80-t\*4\.5,y=28-t\*14/);
+  assert.match(mapSource, /name:"Vane’s Safehouse",x:40\.8,y:11\.3,z:11/);
+  assert.match(mapSource, /name:"Steamer’s Row",x:30,y:25\.2,z:26/);
 });
