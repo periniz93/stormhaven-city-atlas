@@ -113,3 +113,26 @@ test("places the Spillway west and the Whispers beneath right-hand Mid-City", as
   assert.match(mapSource, /name:"Vane’s Safehouse",x:40\.8,y:11\.3,z:11/);
   assert.match(mapSource, /name:"Steamer’s Row",x:30,y:25\.2,z:26/);
 });
+
+test("defines clickable district and elevation-band area focus", async () => {
+  const [mapSource, css] = await Promise.all([
+    readFile(new URL("../app/stormhaven-map.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(mapSource, /const DISTRICT_AREAS:Record<string,AreaPolygon\[\]>/);
+  for (const district of ["The Sea Ward", "The Spillway", "Radiance", "The Beacon", "The Whispers", "Summit", "The Grove", "The Eye", "Raincatcher’s Ward", "Foggy Bottoms"]) {
+    assert.match(mapSource, new RegExp(`(?:name:"${district}"|["]${district}["]:\\[\\[)`));
+  }
+  assert.match(mapSource, /districts:\["The Sea Ward","The Spillway","The Whispers","Foggy Bottoms"\]/);
+  assert.match(mapSource, /districts:\["Radiance","The Beacon","Raincatcher’s Ward"\]/);
+  assert.match(mapSource, /districts:\["Summit","The Grove","The Eye"\]/);
+  assert.match(mapSource, /function buildAreaGeometry/);
+  assert.match(mapSource, /selectionArea\.name="selected-map-area"/);
+  assert.match(mapSource, /blending:THREE\.AdditiveBlending/);
+  assert.match(mapSource, /renderer\.toneMappingExposure=baseExposure\*\(active\?\.84:1\)/);
+  assert.match(mapSource, /raycaster\.intersectObjects\(areaTargets,false\)/);
+  assert.match(mapSource, /focusBand:\(band:CityBand\)=>void/);
+  assert.match(css, /\.city-band-legend button/);
+  assert.match(css, /\.band-label[^}]*pointer-events:auto/);
+});
