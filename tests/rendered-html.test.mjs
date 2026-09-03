@@ -18,9 +18,12 @@ test("server-renders the Stormhaven atlas shell", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
-  assert.match(response.headers.get("content-security-policy") ?? "", /frame-ancestors 'none'/);
+  assert.match(
+    response.headers.get("content-security-policy") ?? "",
+    /frame-ancestors https:\/\/stormhaven\.online http:\/\/localhost:30000 http:\/\/127\.0\.0\.1:30000/,
+  );
+  assert.equal(response.headers.get("x-frame-options"), null);
   assert.equal(response.headers.get("x-content-type-options"), "nosniff");
-  assert.equal(response.headers.get("x-frame-options"), "DENY");
   assert.equal(response.headers.get("referrer-policy"), "no-referrer");
 
   const html = await response.text();
@@ -73,13 +76,32 @@ test("keeps high detail compatible with constrained mobile hardware", async () =
   assert.match(css, /\.detail-panel\.is-atlas/);
 });
 
-test("keeps the southeastern districts on the correct side of the wall", async () => {
-  const mapSource = await readFile(new URL("../app/stormhaven-map.tsx", import.meta.url), "utf8");
+test("separates the Spillway from a sparse, ruined Foggy Bottoms", async () => {
+  const [mapSource, architectureSource] = await Promise.all([
+    readFile(new URL("../app/stormhaven-map.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/stormhaven-architecture.ts", import.meta.url), "utf8"),
+  ]);
+  const districtAnchor = (name) => {
+    const match = mapSource.match(new RegExp(`name:"${name}"[^\\n]*?x:([\\d.]+),y:([\\d.]+),z:([\\d.]+)`));
+    assert.ok(match, `Missing ${name} district anchor`);
+    return match.slice(1).map(Number);
+  };
+  const spillway = districtAnchor("The Spillway");
+  const foggyBottoms = districtAnchor("Foggy Bottoms");
 
-  assert.match(mapSource, /name:"The Spillway",short:"Spillway",x:67,y:10,z:5/);
-  assert.match(mapSource, /name:"Foggy Bottoms",short:"Foggy Bottoms",x:78,y:4,z:4/);
+  assert.deepEqual(spillway, [61, 12, 5]);
+  assert.deepEqual(foggyBottoms, [78, 4, 4]);
+  assert.ok(Math.hypot(spillway[0] - foggyBottoms[0], spillway[1] - foggyBottoms[1]) >= 18);
   assert.match(mapSource, /const FOGGY_MARSH_OUTLINE/);
-  assert.match(mapSource, /const spill=cityPos\(67,10,5\)/);
+  assert.match(mapSource, /const spill=cityPos\(61,12,5\)/);
+  assert.match(mapSource, /name:"Three Sluices",x:62\.8,y:14/);
+  assert.match(mapSource, /DISTRICTS\[9\][^\n]*lowerArchitecture,\["ruin","ruin","sinkhouse","ruin","ruin","stilt-house","ruin","ruin"\],\.58,\{lean:\.22,openCore:2\.35,voidChance:\.5\}/);
+  assert.match(mapSource, /spacing:2\.05,voidChance:\.55/);
+  assert.match(mapSource, /marshFog\.name="foggy-bottoms-fog"/);
+  assert.match(mapSource, /DETAIL_FOG_PLANE/);
+  assert.match(mapSource, /radial=pow\(max\(0\.0,1\.0-length\(p\)\*1\.92\),2\.0\)/);
+  assert.match(mapSource, /\[\[70,7\],\[73,5\.9\],\[76,5\.1\],\[80,4\.6\],\[84,3\.7\]\]/);
+  assert.match(architectureSource, /const slab=box\(g/);
   assert.match(mapSource, /const wreck=cityPos\(74\.2,2\.7,2\)/);
   assert.match(mapSource, /x=80-t\*4\.5,y=28-t\*14/);
   assert.match(mapSource, /name:"Vane’s Safehouse",x:40\.8,y:11\.3,z:11/);

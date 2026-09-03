@@ -10,7 +10,7 @@ type District = { name:string; short:string; x:number; y:number; z:number; color
 
 const DISTRICTS: District[] = [
   { name:"The Sea Ward",short:"Sea Ward",x:11,y:8,z:2,color:"#6ea6b2",kind:"Harbor · Lower city",population:"10,500",description:"Storm-battered quays, stilt warehouses and working canals crowd the western shoreline. The city arrives here wet, indebted, and looking for work." },
-  { name:"The Spillway",short:"Spillway",x:67,y:10,z:5,color:"#a96d46",kind:"Drainage basin · Lower city",population:"2,500",description:"Three sluices carry the upper city’s poison into a walled basin at the Lower City’s southeastern reach. Rust, Arc runoff and cheap lives settle together." },
+  { name:"The Spillway",short:"Spillway",x:61,y:12,z:5,color:"#a96d46",kind:"Drainage basin · Lower city",population:"2,500",description:"Three sluices discharge into the middle-right curve of the lower bay, well inside the wall and west of the outer marsh. Rust, Arc runoff and cheap lives settle together." },
   { name:"Radiance",short:"Radiance",x:22,y:22,z:28,color:"#d98965",kind:"Prism ward · Middle city",population:"6,000",description:"Mirror canyons catch the Beacon’s spill-light and sell it back to the city. Beautiful from a distance. Blinding up close." },
   { name:"The Beacon",short:"Beacon",x:25,y:30,z:30,color:"#75eaff",kind:"Arc works · Western anchor",population:"2,500",description:"A 170-metre stormglass and brass tower cages the lightning. Around its foot, the GlassWorks furnaces never go dark." },
   { name:"The Whispers",short:"Whispers",x:48,y:15,z:15,color:"#8a7cab",kind:"Fog depression · Lower city",population:"6,500",description:"Fog pools between cramped platforms and gives old conversations back at the wrong time. Every door has another exit." },
@@ -31,7 +31,7 @@ const CITY_BANDS:CityBand[] = [
 type LocalSite={name:string;x:number;y:number;z?:number;visited?:boolean;note?:string};
 const LOCAL_SITES:Record<string,LocalSite[]>={
   "The Sea Ward":[{name:"Whale-Jaw Arch",x:10,y:10,visited:true},{name:"Beacon’s Echo",x:13,y:6,z:12},{name:"Lantern Fishmarket",x:8.5,y:7},{name:"Leviathan Quays",x:12,y:4,visited:true}],
-  "The Spillway":[{name:"Vane’s Safehouse",x:40.8,y:11.3,z:11,visited:true,note:"Lower-city shelf southwest of the Whispers, well above the Spillway approach"},{name:"The Drain",x:66,y:11,visited:true},{name:"Three Sluices",x:69,y:12},{name:"Rust Market",x:64,y:9},{name:"Gutter Gate",x:71,y:8}],
+  "The Spillway":[{name:"Vane’s Safehouse",x:40.8,y:11.3,z:11,visited:true,note:"Lower-city shelf southwest of the Whispers, well above the Spillway approach"},{name:"The Drain",x:60,y:13,visited:true},{name:"Three Sluices",x:62.8,y:14},{name:"Rust Market",x:58,y:10.5},{name:"Gutter Gate",x:64,y:11}],
   "Radiance":[{name:"Luminox Hall",x:21,y:24},{name:"Mirror Market",x:24,y:22},{name:"Dark Cells",x:20,y:20},{name:"Glarebound Plaza",x:23,y:19}],
   "The Beacon":[{name:"GlassWorks",x:23,y:29,z:30,visited:true},{name:"Warmth Hall",x:27.4,y:29.2,z:29,visited:true},{name:"Health Wing",x:28.7,y:28.6,z:28,visited:true},{name:"Steamer’s Row",x:30,y:25.2,z:26,visited:true,note:"Lower Glassworks · Back Canal"},{name:"Back Canal",x:31.4,y:23.5,z:22,note:"Shallow working canal parallel to Steamer’s Row"},{name:"Zaps Clinic / Old Baths",x:31.1,y:25.4,z:26,visited:true},{name:"Old Rope Works",x:32.8,y:24.4,z:24,visited:true},{name:"Ygnlov House",x:28.1,y:24.5,z:25,visited:true},{name:"Della’s",x:28.8,y:26.1,z:26,visited:true},{name:"Workers’ Hall",x:30,y:26.4,z:26},{name:"Glassworks Crematorium",x:34,y:27.2,z:27,visited:true},{name:"Guild Mouth",x:24,y:27,z:30,visited:true},{name:"Furnace Belt",x:27,y:31,z:31},{name:"Night Galleries",x:25,y:33,z:31}],
   "The Whispers":[{name:"Murk Street",x:47,y:15,z:15},{name:"The Red Veil",x:51,y:17,z:16},{name:"Drowned Candle",x:45,y:13,z:14},{name:"Moth & Shroud",x:50,y:12,z:15,visited:true}],
@@ -59,7 +59,7 @@ function terrainHeight(x:number,y:number){
   h+=3.5*Math.exp(-((x-44)**2)/95-((y-49)**2)/70);
   h-=15*Math.exp(-((x-7)**2)/180-((y-8)**2)/170);
   h-=13*Math.exp(-((x-96)**2)/150-((y-8)**2)/170);
-  h-=5.5*Math.exp(-((x-67)**2)/85-((y-10)**2)/40);
+  h-=5.5*Math.exp(-((x-61)**2)/85-((y-12)**2)/40);
   h-=2.8*Math.exp(-((x-78)**2)/105-((y-4)**2)/35);
   h-=1.8*Math.exp(-((x-48)**2)/90-((y-15)**2)/65);
   h+=6*Math.exp(-((x-25)**2)/125-((y-30)**2)/90);
@@ -80,6 +80,7 @@ const DETAIL_OCTAHEDRON=sharedDetail(new THREE.OctahedronGeometry(1,0));
 const DETAIL_ICOSAHEDRON=sharedDetail(new THREE.IcosahedronGeometry(1,1));
 const DETAIL_HALF_ARCH=sharedDetail(new THREE.TorusGeometry(1,.09,6,22,Math.PI));
 const DETAIL_DISC=sharedDetail(new THREE.CylinderGeometry(1,1,1,24));
+const DETAIL_FOG_PLANE=sharedDetail(new THREE.PlaneGeometry(1,1));
 
 function addDetailBox(group:THREE.Group,position:THREE.Vector3,scale:[number,number,number],material:THREE.Material,rotationY=0,rotationZ=0){
   const mesh=new THREE.Mesh(DETAIL_BOX,material);mesh.position.copy(position);mesh.scale.set(...scale);mesh.rotation.set(0,rotationY,rotationZ);group.add(mesh);return mesh;
@@ -187,7 +188,7 @@ function addLamp(group:THREE.Group,x:number,y:number,postMaterial:THREE.Material
   const p=cityPos(x,y),post=new THREE.Mesh(DETAIL_CYLINDER,postMaterial),lamp=new THREE.Mesh(DETAIL_OCTAHEDRON,glowMaterial);post.position.set(p.x,p.y+height/2,p.z);post.scale.set(.035,height,.035);lamp.position.set(p.x,p.y+height+.03,p.z);lamp.scale.setScalar(.09);group.add(post,lamp);
 }
 
-function addUrbanGrid(group:THREE.Group,district:District,columns:number,rows:number,spanX:number,spanY:number,seed:number,kit:StormhavenArchitectureKit,kinds:ArchitectureKind[],heightScale:number,details:{lean?:number,openCore?:number}={}){
+function addUrbanGrid(group:THREE.Group,district:District,columns:number,rows:number,spanX:number,spanY:number,seed:number,kit:StormhavenArchitectureKit,kinds:ArchitectureKind[],heightScale:number,details:{lean?:number,openCore?:number,voidChance?:number}={}){
   const random=seeded(seed),sx=spanX/(columns-1),sy=spanY/(rows-1);
   for(let row=0;row<rows;row++)for(let column=0;column<columns;column++){
     const localX=-spanX/2+column*sx,localY=-spanY/2+row*sy;
@@ -197,6 +198,7 @@ function addUrbanGrid(group:THREE.Group,district:District,columns:number,rows:nu
     const x=district.x+localX+(random()-.5)*sx*.32,y=district.y+localY+(random()-.5)*sy*.28;
     if(district.name==="Foggy Bottoms"){if(!pointInPolygon(x,y,FOGGY_MARSH_OUTLINE))continue}
     else if(!pointInPolygon(x,y,CITY_OUTLINE)&&district.name!=="The Sea Ward")continue;
+    if(details.voidChance&&random()<details.voidChance)continue;
     const w=sx*S*(.54+random()*.27),d=sy*S*(.54+random()*.27),h=(.72+random()*1.62)*heightScale,kind=kinds[Math.floor(random()*kinds.length)],building=kit.create(kind,{width:w,depth:d,height:h,seed:seed+row*97+column*13}),p=cityPos(x,y);
     building.position.copy(p);building.rotation.y=(random()-.5)*.2;if(details.lean)building.rotation.z+=(random()-.5)*details.lean;group.add(building);
   }
@@ -208,7 +210,7 @@ const DISTRICT_FOOTPRINTS:Record<string,[number,number]>={
 };
 
 const NEIGHBORHOOD_ANCHORS:Record<string,[number,number,number?]>={
-  "The Sea Ward":[10.5,8,3],"The Spillway":[67,10,5],Radiance:[22.4,21.5,27],"The Beacon":[30,25.2,26],"The Whispers":[48,15,15],
+  "The Sea Ward":[10.5,8,3],"The Spillway":[61,12,5],Radiance:[22.4,21.5,27],"The Beacon":[30,25.2,26],"The Whispers":[48,15,15],
   Summit:[56.5,51.5,44],"The Grove":[44,49,42],"The Eye":[81.5,31.5,30],"Raincatcher’s Ward":[76,20,38],"Foggy Bottoms":[78,4,4],
 };
 
@@ -217,7 +219,7 @@ function neighborhoodAnchor(district:District){return NEIGHBORHOOD_ANCHORS[distr
 type NeighborhoodPlan={angle:number;kinds:ArchitectureKind[];rows:number[];step:number;height:number;camera:[number,number]};
 const NEIGHBORHOOD_PLANS:Record<string,NeighborhoodPlan>={
   "The Sea Ward":{angle:.34,kinds:["harbor-house","warehouse","stilt-house"],rows:[2.2],step:1.18,height:.72,camera:[-6.4,2.4]},
-  "The Spillway":{angle:-.18,kinds:["sluice-house","tenement","warehouse"],rows:[-2.65,2.65],step:1.42,height:.66,camera:[-6.8,2.8]},
+  "The Spillway":{angle:-.12,kinds:["sluice-house","tenement","warehouse"],rows:[-2.65,2.65],step:1.42,height:.66,camera:[-6.8,2.8]},
   Radiance:{angle:.08,kinds:["prism-house","townhouse","glassworks"],rows:[-2.3,2.3],step:1.24,height:.92,camera:[-6.2,2.25]},
   "The Beacon":{angle:.12,kinds:["furnace-house","glassworks","warehouse"],rows:[-2.3,2.35],step:1.18,height:1.02,camera:[-6.8,-2.5]},
   "The Whispers":{angle:-.16,kinds:["whisper-house","tenement","canal-house"],rows:[-2.12,2.18],step:1.12,height:.78,camera:[-6.1,2.2]},
@@ -225,7 +227,7 @@ const NEIGHBORHOOD_PLANS:Record<string,NeighborhoodPlan>={
   "The Grove":{angle:-.22,kinds:["cantor-house","greenhouse","townhouse"],rows:[2.35],step:1.62,height:.82,camera:[-6.2,2.7]},
   "The Eye":{angle:0,kinds:["prayer-house","shrine","townhouse"],rows:[-2.55,2.55],step:1.48,height:.96,camera:[-6.9,2.9]},
   "Raincatcher’s Ward":{angle:.2,kinds:["terrace-house","bathhouse","greenhouse"],rows:[-2.5,2.45],step:1.32,height:.78,camera:[-6.9,2.6]},
-  "Foggy Bottoms":{angle:-.31,kinds:["sinkhouse","stilt-house","ruin"],rows:[-2.45,2.5],step:1.48,height:.62,camera:[-6.7,2.8]},
+  "Foggy Bottoms":{angle:-.31,kinds:["ruin","ruin","sinkhouse","ruin","ruin","stilt-house","ruin","ruin"],rows:[-2.45,2.5],step:2.05,height:.44,camera:[-6.7,2.8]},
 };
 
 const FABRIC_STREETS:Array<Array<[number,number]>>=[
@@ -242,7 +244,7 @@ const FABRIC_CANALS:Array<Array<[number,number]>>=[
   [[46,15],[40,14],[32,12],[24,10],[16,8],[10,6]],
   [[77,4],[73,7],[68,10],[63,12],[58,14],[52,14],[46,14]],
   [[19,10],[22,14],[26,19],[29,25],[31,30]],
-  [[67,7],[67,10],[65,14],[64,18],[66,22],[70,27]],
+  [[61,8],[61,12],[63,16],[64,19],[66,22],[70,27]],
   [[43,23],[48,26],[54,29],[61,30],[68,27],[75,25]],
 ];
 
@@ -256,7 +258,7 @@ const URBAN_MASSES:UrbanMass[]=[
   {name:"summit skirt",points:[[34,34],[42,45],[53,52],[67,49],[79,40],[73,33],[61,35],[49,32],[41,30]],band:"upper",kinds:["townhouse","tower-house","shrine","bathhouse"],height:.94,angle:.08,spacing:1.52,voidChance:.12},
   {name:"eye approach",points:[[67,29],[75,38],[86,40],[91,33],[87,26],[78,23],[72,24]],band:"upper",kinds:["townhouse","shrine","tower-house"],height:.82,angle:-.04,spacing:1.58,voidChance:.15},
   {name:"raincatcher housing",points:[[67,14],[75,14],[84,18],[89,25],[86,32],[80,34],[74,28],[67,23]],band:"mid",kinds:["bathhouse","canal-house","greenhouse","townhouse"],height:.68,angle:.2,spacing:1.52,voidChance:.14},
-  {name:"eastern marsh edge",points:[[69,0],[70,7],[76,9],[84,9],[91,6],[92,0],[84,-1],[75,-1]],band:"lower",kinds:["stilt-house","ruin","canal-house"],height:.5,angle:-.2,spacing:1.62,voidChance:.2},
+  {name:"eastern marsh edge",points:[[69,0],[70,7],[76,9],[84,9],[91,6],[92,0],[84,-1],[75,-1]],band:"lower",kinds:["ruin","stilt-house","ruin","ruin"],height:.4,angle:-.2,spacing:2.05,voidChance:.55},
 ];
 
 function distanceToSegment(x:number,y:number,a:[number,number],b:[number,number]){
@@ -290,7 +292,7 @@ function addMapFabric(group:THREE.Group,kits:FabricKits,mobileGrade:boolean){
   });
 }
 
-type NeighborhoodMaterials={stone:THREE.Material;darkStone:THREE.Material;cobble:THREE.Material;paleStone:THREE.Material;copper:THREE.Material;wood:THREE.Material;water:THREE.Material;garden:THREE.Material;arc:THREE.Material;warm:THREE.Material;redCanvas:THREE.Material;tealCanvas:THREE.Material;glass:THREE.Material};
+type NeighborhoodMaterials={stone:THREE.Material;darkStone:THREE.Material;cobble:THREE.Material;paleStone:THREE.Material;copper:THREE.Material;wood:THREE.Material;water:THREE.Material;marsh:THREE.Material;garden:THREE.Material;arc:THREE.Material;warm:THREE.Material;redCanvas:THREE.Material;tealCanvas:THREE.Material;glass:THREE.Material};
 
 function addNeighborhoodLayer(group:THREE.Group,district:District,materials:NeighborhoodMaterials,kit:StormhavenArchitectureKit,seed:number,mobileGrade:boolean){
   const r=seeded(seed),plan=NEIGHBORHOOD_PLANS[district.name],angle=plan?.angle??0;
@@ -341,9 +343,15 @@ function addNeighborhoodLayer(group:THREE.Group,district:District,materials:Neig
     for(const along of[-3.2,-1.05,1.15,3.3])addStreet(group,[point(along,-2.5),point(along,2.5)],.11,laneMaterial,.15);
     addPlaza(group,...point(2.4,.95),.55,laneMaterial,elevation);
   }else{
-    addStreet(group,[point(-4.8,-1.65),point(-2.8,-1.2),point(-.7,-1.8),point(1.5,-1.25),point(4.8,-1.65)],.27,materials.wood,.24);
-    addStreet(group,[point(-4.5,1.7),point(-2,1.25),point(.3,1.85),point(2.7,1.3),point(4.5,1.65)],.27,materials.wood,.24);
-    for(const along of[-3.5,-.9,1.8,3.8])addStreet(group,[point(along,-1.55),point(along+(r()-.5)*.4,1.55)],.15,materials.wood,.25);
+    addStreet(group,[point(-4.8,-1.65),point(-2.8,-1.2),point(-.7,-1.8),point(1.5,-1.25),point(4.8,-1.65)],.2,materials.wood,.24);
+    addStreet(group,[point(-4.5,1.7),point(-2,1.25),point(.3,1.85),point(2.7,1.3),point(4.5,1.65)],.19,materials.wood,.24);
+    const gangplankSegments=[
+      [point(-4.1,-1.5),point(-3.5,-.35)],[point(-3.05,.85),point(-2.35,2.05)],
+      [point(-1.85,-1.55),point(-1.1,-.15)],[point(-.25,.4),point(.55,1.72)],
+      [point(.9,-1.45),point(1.65,-.25)],[point(2.3,.55),point(3.05,1.78)],
+      [point(3.35,-1.55),point(4.05,-.45)],
+    ];
+    gangplankSegments.forEach((segment,index)=>addStreet(group,segment,.085+(index%3)*.014,materials.wood,.27+index*.008));
   }
 
   // Parcel fronts give the lens a legible, ward-specific street wall. They are
@@ -354,9 +362,9 @@ function addNeighborhoodLayer(group:THREE.Group,district:District,materials:Neig
     plan.rows.forEach((across,rowIndex)=>{
       for(let along=-4.25,parcel=0;along<=4.25;along+=parcelStep,parcel++){
         if(Math.abs(along)<(district.name==="The Eye"?1.45:district.name==="Summit"?.9:.58))continue;
-        if(district.name==="Foggy Bottoms"&&r()<.22)continue;
+        if(district.name==="Foggy Bottoms"&&r()<.68)continue;
         const [x,y]=point(along+(r()-.5)*.18,across+(r()-.5)*.14),kind=plan.kinds[(parcel+rowIndex)%plan.kinds.length],width=S*parcelStep*(.62+r()*.12),depth=.62+r()*.18,height=(1.05+r()*1.05)*plan.height,building=kit.create(kind,{width,depth,height,seed:seed+rowIndex*911+parcel*47}),p=cityPos(x,y);
-        building.position.copy(p);building.rotation.y=angle+(rowIndex%2?Math.PI:0)+(r()-.5)*.045;if(district.name==="Foggy Bottoms")building.rotation.z+=(r()-.5)*.08;group.add(building);
+        building.position.copy(p);building.rotation.y=angle+(rowIndex%2?Math.PI:0)+(r()-.5)*.045;if(district.name==="Foggy Bottoms")building.rotation.z+=(r()-.5)*.16;group.add(building);
       }
     });
   }
@@ -365,13 +373,18 @@ function addNeighborhoodLayer(group:THREE.Group,district:District,materials:Neig
   // and clustered lamps make the close view read as a place people actually use.
   for(let i=0;i<26;i++){
     const [x,y]=point(-4.4+r()*8.8,(i%2?1:-1)*(1.76+r()*.62)),p=cityPos(x,y),kind=i%5;
+    if(district.name==="Foggy Bottoms"){
+      if(i%3===0)addDetailCylinder(group,p,.24+r()*.44,.018+r()*.012,materials.wood,(r()-.5)*.32);
+      else addDetailBox(group,p.clone().add(new THREE.Vector3(0,.04,0)),[.14+r()*.28,.06+r()*.08,.12+r()*.3],i%2?materials.darkStone:materials.stone,r()*Math.PI,(r()-.5)*.35);
+      continue;
+    }
     if(kind===0){const crate=new THREE.Mesh(new THREE.BoxGeometry(.16+r()*.12,.13+r()*.13,.16+r()*.12),materials.wood);crate.position.set(p.x,p.y+.1,p.z);crate.rotation.y=r()*.8;group.add(crate)}
     else if(kind===1){const barrel=new THREE.Mesh(new THREE.CylinderGeometry(.08,.09,.22,7),materials.darkStone);barrel.position.set(p.x,p.y+.11,p.z);group.add(barrel)}
     else if(kind===2){const stoop=new THREE.Mesh(new THREE.BoxGeometry(.35,.08,.22),laneMaterial);stoop.position.set(p.x,p.y+.04,p.z);stoop.rotation.y=angle;group.add(stoop)}
     else if(kind===3){const awning=new THREE.Mesh(new THREE.BoxGeometry(.48,.035,.28),i%2?materials.redCanvas:materials.tealCanvas);awning.position.set(p.x,p.y+.62,p.z);awning.rotation.y=angle;awning.rotation.z=(r()-.5)*.08;group.add(awning)}
     else addLamp(group,x,y,materials.copper,i%2?materials.warm:materials.arc,.56+r()*.16);
   }
-  addMarketStalls(group,...point(1.1,-1.45),district.name==="Summit"||district.name==="The Grove"?4:8,3.2,.45,seed+440,materials.wood,district.name==="Raincatcher’s Ward"?materials.tealCanvas:materials.redCanvas);
+  addMarketStalls(group,...point(1.1,-1.45),district.name==="Foggy Bottoms"?3:district.name==="Summit"||district.name==="The Grove"?4:8,3.2,.45,seed+440,materials.wood,district.name==="Raincatcher’s Ward"||district.name==="Foggy Bottoms"?materials.tealCanvas:materials.redCanvas);
 
   if(district.name==="The Sea Ward"){
     for(const along of[-4,-2,0,2,4]){const [x,y]=point(along,-2.9),p=cityPos(x,y,1.6),pier=new THREE.Mesh(new THREE.BoxGeometry(.5,.09,1.6),materials.wood);pier.position.set(p.x,p.y,p.z);pier.rotation.y=angle;group.add(pier);addLamp(group,x,y,materials.copper,materials.warm,.48)}
@@ -412,9 +425,12 @@ function addNeighborhoodLayer(group:THREE.Group,district:District,materials:Neig
     for(const along of[-3,-1.5,0,1.5,3]){const p=cityPos(...point(along,1.75),elevation);addDetailArch(group,p,.42,.58,.45,materials.glass,angle)}
     for(const along of[-2.7,0,2.7]){const p=cityPos(...point(along,.8),elevation);addDetailCylinder(group,p,.72,.05,materials.copper);p.y+=.74;addDetailOctahedron(group,p,.075,materials.arc)}
   }else if(district.name==="Foggy Bottoms"){
-    for(const across of[-2.35,2.35]){const [aX,aY]=point(-4.7,across),[bX,bY]=point(4.7,across);addStreet(group,[[aX,aY],[bX,bY]],.28,materials.wood,.25)}
-    for(let i=0;i<20;i++){const [x,y]=point(-4.5+r()*9,-2.6+r()*5.2),p=cityPos(x,y),post=new THREE.Mesh(new THREE.CylinderGeometry(.025,.04,.65,5),materials.wood);post.position.set(p.x,p.y+.14,p.z);post.rotation.z=(r()-.5)*.15;group.add(post)}
-    for(const [along,across,radius] of [[-2.8,1.3,.55],[.4,-1.4,.7],[3.1,1.45,.46]] as Array<[number,number,number]>){const p=cityPos(...point(along,across),elevation-.12);addDetailCylinder(group,p,.05,radius,materials.water)}
+    for(let i=0;i<38;i++){const [x,y]=point(-4.5+r()*9,-2.6+r()*5.2),p=cityPos(x,y);addDetailCylinder(group,p,.28+r()*.58,.018+r()*.02,materials.wood,(r()-.5)*.38)}
+    for(const [along,across,scaleX,scaleY] of [[-3.4,1.25,.78,.46],[-1.8,-1.7,.54,.82],[.4,-1.4,.92,.58],[2.15,.2,.62,.44],[3.35,1.55,.7,.48]] as Array<[number,number,number,number]>){const p=cityPos(...point(along,across),elevation-.12),pool=new THREE.Mesh(DETAIL_DISC,materials.marsh);pool.position.copy(p);pool.scale.set(scaleX,.05,scaleY);group.add(pool)}
+    for(let i=0;i<30;i++){const [x,y]=point(-4.2+r()*8.4,-2.35+r()*4.7),p=cityPos(x,y);addDetailBox(group,p.clone().add(new THREE.Vector3(0,.04,0)),[.16+r()*.42,.06+r()*.12,.14+r()*.38],i%3?materials.darkStone:materials.stone,r()*Math.PI,(r()-.5)*.5)}
+    for(let i=0;i<14;i++){const [x,y]=point(-4+r()*8,-2.2+r()*4.4),p=cityPos(x,y),wall=addDetailBox(group,p.clone().add(new THREE.Vector3(0,.28+r()*.22,0)),[.08+r()*.07,.48+r()*.48,.3+r()*.44],i%2?materials.darkStone:materials.stone,r()*Math.PI,(r()-.5)*.42);wall.rotation.x=(r()-.5)*.16}
+    for(let i=0;i<52;i++){const [x,y]=point(-4.4+r()*8.8,-2.55+r()*5.1),p=cityPos(x,y,elevation-.05);addDetailCylinder(group,p,.16+r()*.38,.012+r()*.014,materials.garden,(r()-.5)*.28)}
+    for(let i=0;i<16;i++){const [x,y]=point(-4+r()*8,-2.25+r()*4.5),p=cityPos(x,y),scrub=new THREE.Mesh(DETAIL_ICOSAHEDRON,materials.garden),radius=.1+r()*.16;scrub.position.set(p.x,p.y+.08+r()*.12,p.z);scrub.scale.set(radius*1.4,radius*.55,radius);group.add(scrub)}
     const wreck=cityPos(...point(-.8,.15),elevation),bow=wreck.clone().add(new THREE.Vector3(-1.05,.16,.28)),stern=wreck.clone().add(new THREE.Vector3(1.05,-.08,-.28));addDetailBeam(group,bow,stern,.22,materials.wood);for(const offset of[-.7,0,.7]){const keel=wreck.clone().add(new THREE.Vector3(offset,.02,-offset*.26)),ribTop=keel.clone().add(new THREE.Vector3(0,.48,.08));addDetailBeam(group,keel,ribTop,.045,materials.wood)}const mastBase=wreck.clone(),mastTop=wreck.clone().add(new THREE.Vector3(.18,1.55,-.05));addDetailBeam(group,mastBase,mastTop,.055,materials.wood);addDetailBeam(group,mastTop.clone().add(new THREE.Vector3(-.48,-.3,0)),mastTop.clone().add(new THREE.Vector3(.48,-.3,0)),.035,materials.wood);
   }
 }
@@ -463,6 +479,7 @@ function createCity(selectDistrict:(name:string,site?:LocalSite)=>void,mobileGra
   const profileStarted=performance.now(),profile:Record<string,number>={};let phaseStarted=profileStarted;
   const city=new THREE.Group(),hitTargets:THREE.Object3D[]=[],labelLayer=new THREE.Group(),detailLayers=new Map<string,THREE.Group>(),streetLayers=new Map<string,THREE.Group>();
   const stone=new THREE.MeshStandardMaterial({color:0x687071,roughness:.86,metalness:.08}),darkStone=new THREE.MeshStandardMaterial({color:0x394245,roughness:.95}),slate=new THREE.MeshStandardMaterial({color:0x46545b,roughness:.82,metalness:.06}),soot=new THREE.MeshStandardMaterial({color:0x29363a,roughness:.88,metalness:.16}),copper=new THREE.MeshStandardMaterial({color:0x9b6847,roughness:.62,metalness:.58}),plaster=new THREE.MeshStandardMaterial({color:0x969087,roughness:.92}),wetWood=new THREE.MeshStandardMaterial({color:0x514037,roughness:.85}),glass=new THREE.MeshPhysicalMaterial({color:0x76e8f2,emissive:0x1e7382,emissiveIntensity:2.7,transparent:true,opacity:.82,roughness:.14,metalness:.2}),water=new THREE.MeshPhysicalMaterial({color:0x1b6671,emissive:0x0c3640,emissiveIntensity:.48,transparent:true,opacity:.9,roughness:.12,metalness:.15}),garden=new THREE.MeshStandardMaterial({color:0x526e4f,roughness:.95});
+  const marshWater=new THREE.MeshPhysicalMaterial({color:0x263d36,emissive:0x0b1714,emissiveIntensity:.42,transparent:true,opacity:.92,roughness:.48,metalness:.04});
   city.add(buildTerrain());
   const cobble=new THREE.MeshStandardMaterial({color:0x465457,roughness:.72,metalness:.15}),paleStone=new THREE.MeshStandardMaterial({color:0x85857e,roughness:.9}),arcLamp=new THREE.MeshBasicMaterial({color:0x8eefff}),gasLamp=new THREE.MeshBasicMaterial({color:0xf0b265}),redCanvas=new THREE.MeshStandardMaterial({color:0x8b5341,roughness:.82}),tealCanvas=new THREE.MeshStandardMaterial({color:0x41787b,roughness:.82});
   const bandLower=new THREE.MeshBasicMaterial({color:0xa86d4b,transparent:true,opacity:.19,depthWrite:false,side:THREE.DoubleSide}),bandMid=new THREE.MeshBasicMaterial({color:0x5a9a9b,transparent:true,opacity:.15,depthWrite:false,side:THREE.DoubleSide}),bandUpper=new THREE.MeshBasicMaterial({color:0xb79a68,transparent:true,opacity:.17,depthWrite:false,side:THREE.DoubleSide});
@@ -499,7 +516,7 @@ function createCity(selectDistrict:(name:string,site?:LocalSite)=>void,mobileGra
   addUrbanGrid(wards,DISTRICTS[6],mobileGrade?8:10,mobileGrade?7:8,12,9,77,upperArchitecture,["cantor-house","greenhouse","townhouse"],.92,{openCore:3.1});
   addUrbanGrid(wards,DISTRICTS[7],mobileGrade?11:14,mobileGrade?9:11,11,9.5,88,upperArchitecture,["prayer-house","shrine","townhouse"],1.08,{openCore:2.85});
   addUrbanGrid(wards,DISTRICTS[8],mobileGrade?12:15,mobileGrade?10:12,14,12,99,architecture,["terrace-house","bathhouse","greenhouse"],.82,{openCore:2.85});
-  addUrbanGrid(wards,DISTRICTS[9],mobileGrade?13:16,mobileGrade?9:11,15,9,110,lowerArchitecture,["sinkhouse","stilt-house","ruin"],.74,{lean:.1,openCore:1.65});
+  addUrbanGrid(wards,DISTRICTS[9],mobileGrade?7:9,mobileGrade?5:6,15,9,110,lowerArchitecture,["ruin","ruin","sinkhouse","ruin","ruin","stilt-house","ruin","ruin"],.58,{lean:.22,openCore:2.35,voidChance:.5});
   addMapFabric(wards,{lower:lowerArchitecture,mid:architecture,upper:upperArchitecture},mobileGrade);
 
   // Steamer's Row: a compact, legible street scene beneath the Beacon. The road and
@@ -527,6 +544,13 @@ function createCity(selectDistrict:(name:string,site?:LocalSite)=>void,mobileGra
   addStreet(streets,[[81,31],[84,33],[88,37]],.5,paleStone);
   addStreet(streets,[[71,43],[74,45],[78,47]],.2,paleStone);
   addStreet(streets,[[70,7],[74,6],[78,4],[83,2]],.2,wetWood,.16);
+  [
+    [[70,7],[73,5.9],[76,5.1],[80,4.6],[84,3.7]],
+    [[73,5.9],[72.4,4.1],[74.7,2.2]],
+    [[77,5.1],[78.4,3.3],[78.7,1.2]],
+    [[80,4.6],[82.6,5.7],[86,6.5]],
+    [[82,3.9],[84.3,2.2],[87,.8]],
+  ].forEach((path,index)=>addStreet(streets,path,.09+(index%2)*.025,wetWood,.22+index*.012));
   addStreet(streets,[[7,9],[11,8],[15,9]],.3,wetWood,.15);
   addStairs(streets,[19,19,17],[22,24,26],12,.42,paleStone);
   addStairs(streets,[31,30,30],[35,35,35],10,.38,paleStone);
@@ -552,7 +576,7 @@ function createCity(selectDistrict:(name:string,site?:LocalSite)=>void,mobileGra
   const streetDraws=bakeStaticGroup(streets,"street-fabric",false);
   profile.fabricBakeMs=performance.now()-phaseStarted;phaseStarted=performance.now();
   let neighborhoodDraws=0;
-  const neighborhoodMaterials={stone,darkStone,cobble,paleStone,copper,wood:wetWood,water,garden,arc:arcLamp,warm:gasLamp,redCanvas,tealCanvas,glass};
+  const neighborhoodMaterials={stone,darkStone,cobble,paleStone,copper,wood:wetWood,water,marsh:marshWater,garden,arc:arcLamp,warm:gasLamp,redCanvas,tealCanvas,glass};
   const neighborhoodKit=(district:District)=>district.y>32?upperArchitecture:district.z<=16||district.name==="The Sea Ward"||district.name==="Foggy Bottoms"?lowerArchitecture:architecture;
   const ensureNeighborhood=(district:District)=>{
     const existing=streetLayers.get(district.name);if(existing)return existing;
@@ -607,9 +631,9 @@ function createCity(selectDistrict:(name:string,site?:LocalSite)=>void,mobileGra
   addDetailArch(citySignatures,cityPos(10,10,3),.88,1.35,.8,paleStone,.08);
   const echoBase=cityPos(13,6,12);addDetailCylinder(citySignatures,echoBase,3.4,.34,copper);const echoCrown=echoBase.clone();echoCrown.y+=3.55;addDetailOctahedron(citySignatures,echoCrown,.42,glass);addDetailCone(citySignatures,echoCrown.clone().add(new THREE.Vector3(0,.3,0)),.8,.38,slate);
 
-  const spill=cityPos(67,10,5);
+  const spill=cityPos(61,12,5);
   [1.1,1.8,2.6].forEach((radius,i)=>{const ring=new THREE.Mesh(new THREE.TorusGeometry(radius,.1,6,36),i===0?water:copper);ring.rotation.x=Math.PI/2;ring.position.set(spill.x,spill.y+.04+i*.04,spill.z);citySignatures.add(ring)});
-  for(const gateX of[64.8,67,69.2]){const left=cityPos(gateX,11.4,6),right=cityPos(gateX,9.9,5);addDetailCylinder(citySignatures,left,1.25,.09,copper);addDetailCylinder(citySignatures,right,1.25,.09,copper);left.y+=1.12;right.y+=1.12;addDetailBeam(citySignatures,left,right,.12,darkStone);const warning=left.clone().lerp(right,.5);warning.y+=.24;addDetailOctahedron(citySignatures,warning,.11,arcLamp)}
+  for(const gateX of[58.8,61,63.2]){const left=cityPos(gateX,13.4,6),right=cityPos(gateX,11.9,5);addDetailCylinder(citySignatures,left,1.25,.09,copper);addDetailCylinder(citySignatures,right,1.25,.09,copper);left.y+=1.12;right.y+=1.12;addDetailBeam(citySignatures,left,right,.12,darkStone);const warning=left.clone().lerp(right,.5);warning.y+=.24;addDetailOctahedron(citySignatures,warning,.11,arcLamp)}
 
   const whisperRandom=seeded(4515);
   for(let i=0;i<14;i++){const x=43+whisperRandom()*10,y=12+whisperRandom()*6,p=cityPos(x,y);addDetailCylinder(citySignatures,p,.72,.03,copper,(whisperRandom()-.5)*.12);p.y+=.83;addDetailOctahedron(citySignatures,p,.075+whisperRandom()*.035,i%4===0?gasLamp:glass)}
@@ -617,8 +641,19 @@ function createCity(selectDistrict:(name:string,site?:LocalSite)=>void,mobileGra
   const wreck=cityPos(74.2,2.7,2),wreckBow=wreck.clone().add(new THREE.Vector3(-1.6,.28,.5)),wreckStern=wreck.clone().add(new THREE.Vector3(1.55,-.05,-.45));addDetailBeam(citySignatures,wreckBow,wreckStern,.3,wetWood);
   for(const offset of[-1.05,-.52,0,.52,1.05]){const ribBase=wreck.clone().add(new THREE.Vector3(offset,0,-offset*.28)),ribTop=ribBase.clone().add(new THREE.Vector3(0,.72,.12));addDetailBeam(citySignatures,ribBase,ribTop,.06,wetWood)}
   addDetailBeam(citySignatures,wreck,wreck.clone().add(new THREE.Vector3(.25,2.35,-.08)),.075,wetWood);
-  for(const [x,y,radius] of [[72.5,5.8,.8],[78,3.5,1.05],[83,5.5,.72]] as Array<[number,number,number]>)addDetailCylinder(citySignatures,cityPos(x,y,1.4),.06,radius,water);
+  for(const [x,y,scaleX,scaleY] of [[71.2,6.2,1.05,.62],[74.5,4.5,.78,1.12],[78,3.5,1.3,.82],[82.5,5.6,.94,.62],[86,3.2,1.15,.75],[88.2,6.4,.72,.9]] as Array<[number,number,number,number]>){const pool=new THREE.Mesh(DETAIL_DISC,marshWater);pool.position.copy(cityPos(x,y,1.25));pool.scale.set(scaleX,.055,scaleY);citySignatures.add(pool)}
+  const marshRandom=seeded(7804);
+  for(let i=0;i<34;i++){const x=70+marshRandom()*19,y=.2+marshRandom()*8.2,p=cityPos(x,y,1.4);if(i<18)addDetailBox(citySignatures,p.clone().add(new THREE.Vector3(0,.05,0)),[.16+marshRandom()*.42,.08+marshRandom()*.16,.14+marshRandom()*.38],i%3?darkStone:stone,marshRandom()*Math.PI,(marshRandom()-.5)*.38);else addDetailCylinder(citySignatures,p,.2+marshRandom()*.42,.014+marshRandom()*.014,garden,(marshRandom()-.5)*.28)}
   landmarkDraws+=bakeStaticGroup(citySignatures,"district-signatures",false);city.add(citySignatures);
+  const marshFogMaterial=new THREE.ShaderMaterial({
+    transparent:true,depthWrite:false,depthTest:false,side:THREE.DoubleSide,
+    uniforms:{uColor:{value:new THREE.Color(mobileGrade?0x91a9aa:0xa7b7b5)},uOpacity:{value:mobileGrade ? .1 : .12}},
+    vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*instanceMatrix*vec4(position,1.0);}`,
+    fragmentShader:`varying vec2 vUv;uniform vec3 uColor;uniform float uOpacity;void main(){vec2 p=vUv-.5;float radial=pow(max(0.0,1.0-length(p)*1.92),2.0);float wisps=.7+.3*sin(vUv.x*17.0+sin(vUv.y*13.0));gl_FragColor=vec4(uColor,radial*wisps*uOpacity);}`,
+  });
+  const marshFogCount=mobileGrade?24:52,marshFog=new THREE.InstancedMesh(DETAIL_FOG_PLANE,marshFogMaterial,marshFogCount),fogRandom=seeded(7819),fogMatrix=new THREE.Matrix4(),fogQuaternion=new THREE.Quaternion(),fogEuler=new THREE.Euler(-Math.PI/2,0,0),fogScale=new THREE.Vector3();
+  for(let i=0;i<marshFogCount;i++){const p=cityPos(70+fogRandom()*20,.2+fogRandom()*8.5,.8+fogRandom()*2.9),scale=2.1+fogRandom()*4.3;p.y+=.12+fogRandom()*.32;fogEuler.z=fogRandom()*Math.PI;fogQuaternion.setFromEuler(fogEuler);fogScale.set(scale,scale*(.58+fogRandom()*.42),1);fogMatrix.compose(p,fogQuaternion,fogScale);marshFog.setMatrixAt(i,fogMatrix)}
+  marshFog.name="foggy-bottoms-fog";marshFog.instanceMatrix.needsUpdate=true;marshFog.renderOrder=2;marshFog.frustumCulled=false;city.add(marshFog);
 
   const infrastructure=new THREE.Group();infrastructure.name="infrastructure";
   addCurve(infrastructure,[[25,30,30],[40,38,32],[50,45,38],[58,52,45]],0xc58552,.075,.9);addCurve(infrastructure,[[60,52,45],[72,44,35],[82,36,30],[84,33,30]],0xc58552,.075,.9);addCurve(infrastructure,[[56,52,45],[48,42,35],[38,32,25],[28,22,15],[18,14,8],[12,10,3]],0xc58552,.06,.75);
@@ -675,6 +710,7 @@ export function StormhavenMap(){
     }
     const cityBuildStarted=performance.now(),{city,hitTargets,labelLayer,detailLayers,streetLayers,selectionHalo,haloMaterial,infrastructure,beaconLight,monuments,coarseFabric,ensureNeighborhood,getStaticDrawCalls,profile}=createCity((name,site)=>{const district=DISTRICTS.find(item=>item.name===name);if(district){setSelected(district);setAtlas(false);setLabels(true);setLens(Boolean(site));if(site)apiRef.current?.focusSite(district,site);else apiRef.current?.focus(district)}},mobileGrade),cityBuildMs=performance.now()-cityBuildStarted;scene.add(city);
     const clouds=new THREE.Group(),cloudMaterial=new THREE.MeshStandardMaterial({color:mobileGrade?0x263b41:0x16262c,transparent:true,opacity:mobileGrade ? .44 : .56,roughness:1,depthWrite:false}),cloudRandom=seeded(903),cloudCount=mobileGrade?12:22,cloudGeometry=new THREE.IcosahedronGeometry(1,mobileGrade?0:1),cloudMesh=new THREE.InstancedMesh(cloudGeometry,cloudMaterial,cloudCount),cloudMatrix=new THREE.Matrix4();for(let i=0;i<cloudCount;i++){const scale=5+cloudRandom()*9;cloudMatrix.compose(new THREE.Vector3((cloudRandom()-.5)*115,20+cloudRandom()*8,(cloudRandom()-.5)*75),new THREE.Quaternion(),new THREE.Vector3(scale,scale*(.15+cloudRandom()*.1),scale));cloudMesh.setMatrixAt(i,cloudMatrix)}cloudMesh.instanceMatrix.needsUpdate=true;clouds.add(cloudMesh);scene.add(clouds);
+    if(mobileGrade)cloudMesh.visible=false;
     const rainCount=mobileGrade?420:1100,rainPositions=new Float32Array(rainCount*3),rainSpeeds=new Float32Array(rainCount),rainRandom=seeded(8844);for(let i=0;i<rainCount;i++){rainPositions[i*3]=(rainRandom()-.5)*105;rainPositions[i*3+1]=rainRandom()*34;rainPositions[i*3+2]=(rainRandom()-.5)*74;rainSpeeds[i]=7+rainRandom()*7}const rainGeometry=new THREE.BufferGeometry();rainGeometry.setAttribute("position",new THREE.BufferAttribute(rainPositions,3));rainGeometry.setAttribute("aSpeed",new THREE.BufferAttribute(rainSpeeds,1));const rainMaterial=new THREE.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{uTime:{value:0},uOpacity:{value:mobileGrade ? .22 : .35}},vertexShader:`uniform float uTime;attribute float aSpeed;void main(){vec3 p=position;p.y=mod(position.y-uTime*aSpeed+34.0,34.0);p.x-=mod(uTime*aSpeed*.035,3.0);vec4 mv=modelViewMatrix*vec4(p,1.0);gl_PointSize=1.35;gl_Position=projectionMatrix*mv;}`,fragmentShader:`uniform float uOpacity;void main(){gl_FragColor=vec4(.68,.84,.86,uOpacity);}`});const rain=new THREE.Points(rainGeometry,rainMaterial);scene.add(rain);
     const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let pointerDown={x:0,y:0};const onDown=(event:PointerEvent)=>{pointerDown={x:event.clientX,y:event.clientY}},onClick=(event:PointerEvent)=>{if(Math.hypot(event.clientX-pointerDown.x,event.clientY-pointerDown.y)>5)return;const bounds=renderer.domElement.getBoundingClientRect();pointer.x=(event.clientX-bounds.left)/bounds.width*2-1;pointer.y=-(event.clientY-bounds.top)/bounds.height*2+1;raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(hitTargets,false)[0];if(hit?.object.userData.district){const district=DISTRICTS.find(item=>item.name===hit.object.userData.district);if(district){setSelected(district);setAtlas(false);setLabels(true);setLens(false);apiRef.current?.focus(district)}}};renderer.domElement.addEventListener("pointerdown",onDown);renderer.domElement.addEventListener("pointerup",onClick);
     let labelsDirty=true;const labelCameraPosition=new THREE.Vector3(),labelCameraQuaternion=new THREE.Quaternion();

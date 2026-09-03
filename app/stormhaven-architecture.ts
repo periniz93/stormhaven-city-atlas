@@ -101,7 +101,25 @@ export function createStormhavenArchitectureKit(m:ArchitectureMaterials):Stormha
   };
   const stiltHouse=({width:w,depth:d,height:h,seed}:BuildOptions)=>{const g=canalHouse({width:w,depth:d,height:h,seed});g.rotation.z=(randomFrom(seed+4)()-.5)*.13;box(g,w*.7,.04,d*.22,m.wetWood,w*.18,.38,d*.61);return finish(g)};
   const ruin=({width:w,depth:d,height:h,seed}:BuildOptions)=>{
-    const r=randomFrom(seed),g=new THREE.Group();box(g,w*.23,h,d,m.darkStone,-w*.38,h/2,0);box(g,w*.23,h*(.55+r()*.25),d,m.stone,w*.38,h*.3,0);box(g,w*.6,h*.18,d*.2,m.darkStone,0,h*.1,-d*.38);for(let i=0;i<3;i++)cylinder(g,.035,.05,h*(.25+r()*.35),6,m.copper,(r()-.5)*w,h*.2,(r()-.5)*d);return finish(g);
+    const r=randomFrom(seed),g=new THREE.Group();
+    for(const side of[-1,1]){
+      const fragments=side<0?3:2;
+      for(let i=0;i<fragments;i++){
+        const fragmentHeight=h*(.24+r()*.58),x=side*w*(.34+r()*.07),z=(i-(fragments-1)/2)*d*.38;
+        const wall=box(g,w*(.12+r()*.1),fragmentHeight,d*(.2+r()*.12),(i+side)%2?m.darkStone:m.stone,x,fragmentHeight/2,z);
+        wall.rotation.z=(r()-.5)*.28;wall.rotation.y=(r()-.5)*.16;
+      }
+    }
+    const rear=box(g,w*(.3+r()*.22),h*(.1+r()*.17),d*.14,m.darkStone,(r()-.5)*w*.15,h*.08,-d*.42);rear.rotation.z=(r()-.5)*.34;
+    for(let i=0;i<6;i++){
+      const slab=box(g,w*(.14+r()*.24),h*(.03+r()*.06),d*(.1+r()*.24),i%2?m.stone:m.darkStone,(r()-.5)*w,h*(.02+r()*.08),(r()-.5)*d);
+      slab.rotation.set((r()-.5)*.24,r()*Math.PI,(r()-.5)*.5);
+    }
+    for(let i=0;i<4;i++){
+      const rod=cylinder(g,.02,.035,h*(.18+r()*.42),6,i%3===0?m.wetWood:m.copper,(r()-.5)*w,h*.15,(r()-.5)*d);
+      rod.rotation.z=(r()-.5)*.55;
+    }
+    return finish(g);
   };
 
   // District houses carry the working logic of their ward in their silhouette.
