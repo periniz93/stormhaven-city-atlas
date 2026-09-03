@@ -76,7 +76,7 @@ test("keeps high detail compatible with constrained mobile hardware", async () =
   assert.match(css, /\.detail-panel\.is-atlas/);
 });
 
-test("separates the Spillway from a sparse, ruined Foggy Bottoms", async () => {
+test("places the Spillway west and the Whispers beneath right-hand Mid-City", async () => {
   const [mapSource, architectureSource] = await Promise.all([
     readFile(new URL("../app/stormhaven-map.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/stormhaven-architecture.ts", import.meta.url), "utf8"),
@@ -88,13 +88,19 @@ test("separates the Spillway from a sparse, ruined Foggy Bottoms", async () => {
   };
   const spillway = districtAnchor("The Spillway");
   const foggyBottoms = districtAnchor("Foggy Bottoms");
+  const whispers = districtAnchor("The Whispers");
 
-  assert.deepEqual(spillway, [61, 12, 5]);
+  assert.deepEqual(spillway, [53, 12, 5]);
   assert.deepEqual(foggyBottoms, [78, 4, 4]);
-  assert.ok(Math.hypot(spillway[0] - foggyBottoms[0], spillway[1] - foggyBottoms[1]) >= 18);
+  assert.deepEqual(whispers, [59, 21, 15]);
+  assert.ok(spillway[0] < whispers[0]);
+  assert.ok(whispers[0] > 50 && whispers[1] > spillway[1] && whispers[1] < 27);
+  assert.ok(Math.hypot(spillway[0] - foggyBottoms[0], spillway[1] - foggyBottoms[1]) >= 25);
   assert.match(mapSource, /const FOGGY_MARSH_OUTLINE/);
-  assert.match(mapSource, /const spill=cityPos\(61,12,5\)/);
-  assert.match(mapSource, /name:"Three Sluices",x:62\.8,y:14/);
+  assert.match(mapSource, /const spill=cityPos\(53,12,5\)/);
+  assert.match(mapSource, /name:"Three Sluices",x:54\.8,y:14/);
+  assert.match(mapSource, /name:"Murk Street",x:58,y:21,z:15/);
+  assert.match(mapSource, /\[\[53,19\],\[56,20\],\[59,21\],\[62,20\],\[66,22\]\]/);
   assert.match(mapSource, /DISTRICTS\[9\][^\n]*lowerArchitecture,\["ruin","ruin","sinkhouse","ruin","ruin","stilt-house","ruin","ruin"\],\.58,\{lean:\.22,openCore:2\.35,voidChance:\.5\}/);
   assert.match(mapSource, /spacing:2\.05,voidChance:\.55/);
   assert.match(mapSource, /marshFog\.name="foggy-bottoms-fog"/);

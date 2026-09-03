@@ -10,10 +10,10 @@ type District = { name:string; short:string; x:number; y:number; z:number; color
 
 const DISTRICTS: District[] = [
   { name:"The Sea Ward",short:"Sea Ward",x:11,y:8,z:2,color:"#6ea6b2",kind:"Harbor · Lower city",population:"10,500",description:"Storm-battered quays, stilt warehouses and working canals crowd the western shoreline. The city arrives here wet, indebted, and looking for work." },
-  { name:"The Spillway",short:"Spillway",x:61,y:12,z:5,color:"#a96d46",kind:"Drainage basin · Lower city",population:"2,500",description:"Three sluices discharge into the middle-right curve of the lower bay, well inside the wall and west of the outer marsh. Rust, Arc runoff and cheap lives settle together." },
+  { name:"The Spillway",short:"Spillway",x:53,y:12,z:5,color:"#a96d46",kind:"Drainage basin · Lower city",population:"2,500",description:"Three sluices discharge into the central inner curve of the lower bay, well west of the outer marsh. Rust, Arc runoff and cheap lives settle together." },
   { name:"Radiance",short:"Radiance",x:22,y:22,z:28,color:"#d98965",kind:"Prism ward · Middle city",population:"6,000",description:"Mirror canyons catch the Beacon’s spill-light and sell it back to the city. Beautiful from a distance. Blinding up close." },
   { name:"The Beacon",short:"Beacon",x:25,y:30,z:30,color:"#75eaff",kind:"Arc works · Western anchor",population:"2,500",description:"A 170-metre stormglass and brass tower cages the lightning. Around its foot, the GlassWorks furnaces never go dark." },
-  { name:"The Whispers",short:"Whispers",x:48,y:15,z:15,color:"#8a7cab",kind:"Fog depression · Lower city",population:"6,500",description:"Fog pools between cramped platforms and gives old conversations back at the wrong time. Every door has another exit." },
+  { name:"The Whispers",short:"Whispers",x:59,y:21,z:15,color:"#8a7cab",kind:"Fog depression · Lower city",population:"6,500",description:"Fog pools beneath the right-hand Mid-City retaining wall and gives old conversations back at the wrong time. Every door has another exit." },
   { name:"Summit",short:"Summit",x:60,y:54,z:45,color:"#d8b978",kind:"Noble ridge · Upper city",population:"4,000",description:"Dry bridges stitch the Great Houses together above the rain. Their towers are clean because the cost runs downhill." },
   { name:"The Grove",short:"Grove",x:44,y:49,z:42,color:"#76a56e",kind:"Choir terraces · Upper city",population:"1,500",description:"Public gardens rise through Cantor terraces to a restricted canopy level with the bases of Summit’s towers." },
   { name:"The Eye",short:"The Eye",x:84,y:33,z:30,color:"#9dc2c9",kind:"Synod precinct · Upper city edge",population:"4,500",description:"A stormglass cathedral still remembers when lightning chose it. Copper prayer-lines hum beneath a severe public square." },
@@ -31,10 +31,10 @@ const CITY_BANDS:CityBand[] = [
 type LocalSite={name:string;x:number;y:number;z?:number;visited?:boolean;note?:string};
 const LOCAL_SITES:Record<string,LocalSite[]>={
   "The Sea Ward":[{name:"Whale-Jaw Arch",x:10,y:10,visited:true},{name:"Beacon’s Echo",x:13,y:6,z:12},{name:"Lantern Fishmarket",x:8.5,y:7},{name:"Leviathan Quays",x:12,y:4,visited:true}],
-  "The Spillway":[{name:"Vane’s Safehouse",x:40.8,y:11.3,z:11,visited:true,note:"Lower-city shelf southwest of the Whispers, well above the Spillway approach"},{name:"The Drain",x:60,y:13,visited:true},{name:"Three Sluices",x:62.8,y:14},{name:"Rust Market",x:58,y:10.5},{name:"Gutter Gate",x:64,y:11}],
+  "The Spillway":[{name:"Vane’s Safehouse",x:40.8,y:11.3,z:11,visited:true,note:"Lower-city shelf southwest of the Whispers, well above the Spillway approach"},{name:"The Drain",x:52,y:13,visited:true},{name:"Three Sluices",x:54.8,y:14},{name:"Rust Market",x:50,y:10.5},{name:"Gutter Gate",x:56,y:11}],
   "Radiance":[{name:"Luminox Hall",x:21,y:24},{name:"Mirror Market",x:24,y:22},{name:"Dark Cells",x:20,y:20},{name:"Glarebound Plaza",x:23,y:19}],
   "The Beacon":[{name:"GlassWorks",x:23,y:29,z:30,visited:true},{name:"Warmth Hall",x:27.4,y:29.2,z:29,visited:true},{name:"Health Wing",x:28.7,y:28.6,z:28,visited:true},{name:"Steamer’s Row",x:30,y:25.2,z:26,visited:true,note:"Lower Glassworks · Back Canal"},{name:"Back Canal",x:31.4,y:23.5,z:22,note:"Shallow working canal parallel to Steamer’s Row"},{name:"Zaps Clinic / Old Baths",x:31.1,y:25.4,z:26,visited:true},{name:"Old Rope Works",x:32.8,y:24.4,z:24,visited:true},{name:"Ygnlov House",x:28.1,y:24.5,z:25,visited:true},{name:"Della’s",x:28.8,y:26.1,z:26,visited:true},{name:"Workers’ Hall",x:30,y:26.4,z:26},{name:"Glassworks Crematorium",x:34,y:27.2,z:27,visited:true},{name:"Guild Mouth",x:24,y:27,z:30,visited:true},{name:"Furnace Belt",x:27,y:31,z:31},{name:"Night Galleries",x:25,y:33,z:31}],
-  "The Whispers":[{name:"Murk Street",x:47,y:15,z:15},{name:"The Red Veil",x:51,y:17,z:16},{name:"Drowned Candle",x:45,y:13,z:14},{name:"Moth & Shroud",x:50,y:12,z:15,visited:true}],
+  "The Whispers":[{name:"Murk Street",x:58,y:21,z:15},{name:"The Red Veil",x:62,y:23,z:16},{name:"Drowned Candle",x:56,y:19,z:14},{name:"Moth & Shroud",x:61,y:18,z:15,visited:true}],
   "Summit":[{name:"Ticking Palace",x:60.4,y:54.1,z:46,visited:true},{name:"Prism Hall",x:59,y:52,z:45},{name:"Conclave Tower",x:61,y:55,z:45},{name:"Skytouched Observatory",x:56,y:55,z:45},{name:"First-Blood Balcony",x:64,y:52,z:45}],
   "The Grove":[{name:"The Synapse",x:44,y:51,z:45},{name:"Cantor Terraces",x:41,y:49,z:41},{name:"Listening Walk",x:47,y:46,z:38},{name:"Restricted Canopy",x:44,y:53,z:45}],
   "The Eye":[{name:"Grand Cathedral",x:84,y:33,z:30},{name:"Zephyr’s Pavilion",x:86,y:35,z:31},{name:"Brawl Courts",x:81,y:32,z:30},{name:"Shrine Ring",x:85,y:30,z:29}],
@@ -59,9 +59,9 @@ function terrainHeight(x:number,y:number){
   h+=3.5*Math.exp(-((x-44)**2)/95-((y-49)**2)/70);
   h-=15*Math.exp(-((x-7)**2)/180-((y-8)**2)/170);
   h-=13*Math.exp(-((x-96)**2)/150-((y-8)**2)/170);
-  h-=5.5*Math.exp(-((x-61)**2)/85-((y-12)**2)/40);
+  h-=5.5*Math.exp(-((x-53)**2)/85-((y-12)**2)/40);
   h-=2.8*Math.exp(-((x-78)**2)/105-((y-4)**2)/35);
-  h-=1.8*Math.exp(-((x-48)**2)/90-((y-15)**2)/65);
+  h-=1.8*Math.exp(-((x-59)**2)/90-((y-21)**2)/65);
   h+=6*Math.exp(-((x-25)**2)/125-((y-30)**2)/90);
   h+=5*Math.exp(-((x-84)**2)/95-((y-33)**2)/80);
   return Math.max(-1,h);
@@ -210,7 +210,7 @@ const DISTRICT_FOOTPRINTS:Record<string,[number,number]>={
 };
 
 const NEIGHBORHOOD_ANCHORS:Record<string,[number,number,number?]>={
-  "The Sea Ward":[10.5,8,3],"The Spillway":[61,12,5],Radiance:[22.4,21.5,27],"The Beacon":[30,25.2,26],"The Whispers":[48,15,15],
+  "The Sea Ward":[10.5,8,3],"The Spillway":[53,12,5],Radiance:[22.4,21.5,27],"The Beacon":[30,25.2,26],"The Whispers":[59,21,15],
   Summit:[56.5,51.5,44],"The Grove":[44,49,42],"The Eye":[81.5,31.5,30],"Raincatcher’s Ward":[76,20,38],"Foggy Bottoms":[78,4,4],
 };
 
@@ -231,7 +231,7 @@ const NEIGHBORHOOD_PLANS:Record<string,NeighborhoodPlan>={
 };
 
 const FABRIC_STREETS:Array<Array<[number,number]>>=[
-  [[7,9],[18,13],[29,14],[40,15],[52,15],[58,13],[64,11],[68,10],[72,8]],
+  [[7,9],[18,13],[29,14],[40,15],[47,14],[53,12],[60,11],[68,10],[72,8]],
   [[16,20],[27,22],[39,21],[52,22],[64,25],[76,29],[86,32]],
   [[20,28],[31,32],[43,37],[54,44],[62,51],[72,46],[83,36]],
   [[27,29],[35,37],[44,48],[52,51],[60,54]],
@@ -241,10 +241,10 @@ const FABRIC_CANALS:Array<Array<[number,number]>>=[
   [[47,2],[47,7],[44,12],[40,17],[35,22],[32,28]],
   [[27,23.7],[30,24.1],[34,23.1],[38,21],[42,18]],
   [[80,30],[79,26],[78,22],[76,18],[74,14],[75,9],[77,4]],
-  [[46,15],[40,14],[32,12],[24,10],[16,8],[10,6]],
-  [[77,4],[73,7],[68,10],[63,12],[58,14],[52,14],[46,14]],
+  [[59,21],[55,20],[51,18],[46,16],[40,14],[32,12],[24,10],[16,8],[10,6]],
+  [[77,4],[73,7],[68,10],[61,11],[56,12],[53,12],[46,14]],
   [[19,10],[22,14],[26,19],[29,25],[31,30]],
-  [[61,8],[61,12],[63,16],[64,19],[66,22],[70,27]],
+  [[53,8],[53,12],[55,16],[57,19],[59,21],[65,24],[70,27]],
   [[43,23],[48,26],[54,29],[61,30],[68,27],[75,25]],
 ];
 
@@ -537,7 +537,7 @@ function createCity(selectDistrict:(name:string,site?:LocalSite)=>void,mobileGra
   // Four civic terraces carry the city. Short local streets branch from them, but
   // the old diagrammatic district-to-district links are reserved for Route overlay.
   FABRIC_STREETS.forEach((path,index)=>addStreet(streets,path,index===0?.3:index===1?.34:index===2?.29:.22,index>1?paleStone:cobble,.11));
-  addStreet(streets,[[42,13],[45,14],[48,15],[51,14],[55,16]],.32,cobble); // Murk Street
+  addStreet(streets,[[53,19],[56,20],[59,21],[62,20],[66,22]],.32,cobble); // Murk Street
   addStreet(streets,[[19,18],[21,21],[22,24],[25,26]],.3,paleStone);
   addStreet(streets,[[26,25.7],[28,25.5],[30,25.25],[32,25],[34.6,24.7]],.34,cobble,.13); // Steamer's Row
   addStreet(streets,[[26.2,27.4],[29,27.1],[32,26.8],[35,26.4]],.16,cobble,.12);
@@ -559,16 +559,16 @@ function createCity(selectDistrict:(name:string,site?:LocalSite)=>void,mobileGra
   addStairs(streets,[82,32,30],[80,28,44],14,.42,paleStone);
   addStairs(streets,[48,47,40],[44,51,44],10,.3,paleStone);
   addStairs(streets,[53,50,44],[59,53,45],11,.32,paleStone);
-  addPlaza(streets,25,30,3.35,cobble,30);addPlaza(streets,84,33,3.3,paleStone,30);addPlaza(streets,60,54,2.8,paleStone,45);addPlaza(streets,48,15,1.45,cobble,15);
+  addPlaza(streets,25,30,3.35,cobble,30);addPlaza(streets,84,33,3.3,paleStone,30);addPlaza(streets,60,54,2.8,paleStone,45);addPlaza(streets,59,21,1.45,cobble,15);
   for(let x=17;x<=83;x+=5.5)addLamp(streets,x,34+(x-25)*.075,copper,arcLamp,.72);
-  for(let x=43;x<=54;x+=2.2)addLamp(streets,x,15,copper,gasLamp,.52);
+  for(let x=54;x<=65;x+=2.2)addLamp(streets,x,21,copper,gasLamp,.52);
   for(let i=0;i<14;i++){const angle=i/14*Math.PI*2;addLamp(streets,84+Math.cos(angle)*4.1,33+Math.sin(angle)*3.5,copper,gasLamp,.7)}
   addRetainingWall(streets,[[17,18],[22,22],[30,23],[40,24],[50,25],[62,27],[72,30],[82,30]],2.5,darkStone);
   addRetainingWall(streets,[[27,30],[38,33],[48,38],[56,44],[64,48],[72,46],[79,40]],1.75,stone);
   addRetainingWall(streets,[[33,9],[38,8],[44,10],[48,12],[52,11],[58,12]],1.15,darkStone);
   addRetainingWall(streets,[...CITY_OUTLINE,CITY_OUTLINE[0]],1.65,darkStone);
   addMarketStalls(streets,11,8,22,7,3,601,wetWood,redCanvas);
-  addMarketStalls(streets,48,15,18,8,2.2,602,wetWood,tealCanvas);
+  addMarketStalls(streets,59,21,18,8,2.2,602,wetWood,tealCanvas);
   addMarketStalls(streets,84,36.2,12,5,1.2,603,wetWood,redCanvas);
   [[28.2,24.5],[30.4,24],[32.6,23.5]].forEach(([x,y])=>addBridge(streets,x,y,terrainHeight(x,y)-1.6,.52,1.15,.17,wetWood));
   profile.fabricGenerateMs=performance.now()-phaseStarted;phaseStarted=performance.now();
@@ -631,12 +631,12 @@ function createCity(selectDistrict:(name:string,site?:LocalSite)=>void,mobileGra
   addDetailArch(citySignatures,cityPos(10,10,3),.88,1.35,.8,paleStone,.08);
   const echoBase=cityPos(13,6,12);addDetailCylinder(citySignatures,echoBase,3.4,.34,copper);const echoCrown=echoBase.clone();echoCrown.y+=3.55;addDetailOctahedron(citySignatures,echoCrown,.42,glass);addDetailCone(citySignatures,echoCrown.clone().add(new THREE.Vector3(0,.3,0)),.8,.38,slate);
 
-  const spill=cityPos(61,12,5);
+  const spill=cityPos(53,12,5);
   [1.1,1.8,2.6].forEach((radius,i)=>{const ring=new THREE.Mesh(new THREE.TorusGeometry(radius,.1,6,36),i===0?water:copper);ring.rotation.x=Math.PI/2;ring.position.set(spill.x,spill.y+.04+i*.04,spill.z);citySignatures.add(ring)});
-  for(const gateX of[58.8,61,63.2]){const left=cityPos(gateX,13.4,6),right=cityPos(gateX,11.9,5);addDetailCylinder(citySignatures,left,1.25,.09,copper);addDetailCylinder(citySignatures,right,1.25,.09,copper);left.y+=1.12;right.y+=1.12;addDetailBeam(citySignatures,left,right,.12,darkStone);const warning=left.clone().lerp(right,.5);warning.y+=.24;addDetailOctahedron(citySignatures,warning,.11,arcLamp)}
+  for(const gateX of[50.8,53,55.2]){const left=cityPos(gateX,13.4,6),right=cityPos(gateX,11.9,5);addDetailCylinder(citySignatures,left,1.25,.09,copper);addDetailCylinder(citySignatures,right,1.25,.09,copper);left.y+=1.12;right.y+=1.12;addDetailBeam(citySignatures,left,right,.12,darkStone);const warning=left.clone().lerp(right,.5);warning.y+=.24;addDetailOctahedron(citySignatures,warning,.11,arcLamp)}
 
   const whisperRandom=seeded(4515);
-  for(let i=0;i<14;i++){const x=43+whisperRandom()*10,y=12+whisperRandom()*6,p=cityPos(x,y);addDetailCylinder(citySignatures,p,.72,.03,copper,(whisperRandom()-.5)*.12);p.y+=.83;addDetailOctahedron(citySignatures,p,.075+whisperRandom()*.035,i%4===0?gasLamp:glass)}
+  for(let i=0;i<14;i++){const x=54+whisperRandom()*10,y=18+whisperRandom()*6,p=cityPos(x,y);addDetailCylinder(citySignatures,p,.72,.03,copper,(whisperRandom()-.5)*.12);p.y+=.83;addDetailOctahedron(citySignatures,p,.075+whisperRandom()*.035,i%4===0?gasLamp:glass)}
 
   const wreck=cityPos(74.2,2.7,2),wreckBow=wreck.clone().add(new THREE.Vector3(-1.6,.28,.5)),wreckStern=wreck.clone().add(new THREE.Vector3(1.55,-.05,-.45));addDetailBeam(citySignatures,wreckBow,wreckStern,.3,wetWood);
   for(const offset of[-1.05,-.52,0,.52,1.05]){const ribBase=wreck.clone().add(new THREE.Vector3(offset,0,-offset*.28)),ribTop=ribBase.clone().add(new THREE.Vector3(0,.72,.12));addDetailBeam(citySignatures,ribBase,ribTop,.06,wetWood)}
