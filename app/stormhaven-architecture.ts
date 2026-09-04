@@ -43,7 +43,7 @@ export type StormhavenArchitectureKit = { create:(kind:ArchitectureKind,options:
 
 function randomFrom(seed:number){let t=seed>>>0;return()=>{t+=0x6d2b79f5;let r=Math.imul(t^(t>>>15),1|t);r^=r+Math.imul(r^(r>>>7),61|r);return((r^(r>>>14))>>>0)/4294967296}}
 
-export function createStormhavenArchitectureKit(m:ArchitectureMaterials):StormhavenArchitectureKit{
+export function createStormhavenArchitectureKit(m:ArchitectureMaterials,lowDetail=false):StormhavenArchitectureKit{
   // Buildings are baked into material buckets before their first render. Reusing
   // normalized source primitives avoids allocating thousands of equivalent
   // BufferGeometry objects while preserving the exact transformed vertices.
@@ -68,24 +68,28 @@ export function createStormhavenArchitectureKit(m:ArchitectureMaterials):Stormha
   const pipe=(g:THREE.Group,w:number,d:number,h:number,material:THREE.Material,side=1)=>{const p=cylinder(g,.022,.03,h*.82,6,material,w*.46*side,h*.43,d*.18);p.rotation.z=.025*side};
   const balcony=(g:THREE.Group,w:number,d:number,y:number,material:THREE.Material)=>{box(g,w*.62,.055,d*.28,material,0,y,d*.58);box(g,w*.62,.18,.025,material,0,y+.11,d*.7)};
   const stilts=(g:THREE.Group,w:number,d:number,lift:number)=>{for(const x of[-w*.37,w*.37])for(const z of[-d*.37,d*.37])cylinder(g,.025,.035,lift,5,m.wetWood,x,lift/2,z)};
+  const dormers=(g:THREE.Group,w:number,d:number,y:number,wall:THREE.Material,roofMaterial:THREE.Material,count=2)=>{
+    for(let i=0;i<count;i++){const x=(i-(count-1)/2)*w*.42;box(g,w*.18,.18,d*.13,wall,x,y+.08,d*.37);const cap=new THREE.Mesh(coneGeometry(4),roofMaterial);cap.position.set(x,y+.23,d*.37);cap.scale.set(w*.15,.16,d*.15);cap.rotation.y=Math.PI/4;g.add(cap)}
+  };
+  const roofTank=(g:THREE.Group,w:number,d:number,y:number)=>{cylinder(g,.1,.13,.34,7,m.copper,w*.24,y+.17,-d*.18);const cap=new THREE.Mesh(coneGeometry(7),m.slate);cap.position.set(w*.24,y+.4,-d*.18);cap.scale.set(.12,.16,.12);g.add(cap)};
   // The kit's output is always consolidated before its first render; shadow and
   // receive flags are assigned once to the resulting material buckets there.
   const finish=(g:THREE.Group)=>g;
 
   const tenement=({width:w,depth:d,height:h,seed}:BuildOptions)=>{
-    const r=randomFrom(seed),g=new THREE.Group();box(g,w,h*.74,d,m.darkStone);box(g,w*.86,h*.26,d*.9,r()>.5?m.soot:m.stone,(r()-.5)*w*.08,h*.87,0);cornice(g,w,d,h*.73,m.copper);roof(g,w*.88,d*.9,h,m.slate,.22);door(g,w,d,m.wetWood,-w*.18);windows(g,w,d,h*.7,Math.max(2,Math.floor(h/.45)),2,r()>.5?m.window:m.warmWindow,.04);balcony(g,w,d,h*.53,m.copper);pipe(g,w,d,h,m.pipe,r()>.5?1:-1);return finish(g);
+    const r=randomFrom(seed),g=new THREE.Group();box(g,w,h*.74,d,m.darkStone);box(g,w*.86,h*.26,d*.9,r()>.5?m.soot:m.stone,(r()-.5)*w*.08,h*.87,0);cornice(g,w,d,h*.73,m.copper);roof(g,w*.88,d*.9,h,m.slate,.22);if(!lowDetail&&r()>.48)roofTank(g,w,d,h);door(g,w,d,m.wetWood,-w*.18);windows(g,w,d,h*.7,Math.max(2,Math.floor(h/.45)),2,r()>.5?m.window:m.warmWindow,.04);balcony(g,w,d,h*.53,m.copper);pipe(g,w,d,h,m.pipe,r()>.5?1:-1);return finish(g);
   };
   const canalHouse=({width:w,depth:d,height:h,seed}:BuildOptions)=>{
-    const r=randomFrom(seed),g=new THREE.Group(),lift=.18+r()*.18;stilts(g,w,d,lift);box(g,w,h,d,r()>.45?m.plaster:m.wetWood,0,lift+h/2,0);roof(g,w,d,lift+h,m.slate,.35);door(g,w,d,m.wetWood,w*.2);windows(g,w,d,h*.82,Math.max(2,Math.floor(h/.5)),2,m.warmWindow,lift);box(g,w*.48,.05,d*.32,m.wetWood,0,lift+.1,d*.62);pipe(g,w,d,lift+h,m.copper,-1);return finish(g);
+    const r=randomFrom(seed),g=new THREE.Group(),lift=.18+r()*.18;stilts(g,w,d,lift);box(g,w,h,d,r()>.45?m.plaster:m.wetWood,0,lift+h/2,0);if(!lowDetail&&r()>.5)box(g,w*.36,h*.58,d*.28,m.stone,-w*.3,lift+h*.46,-d*.31);roof(g,w,d,lift+h,m.slate,.35);if(!lowDetail&&r()>.54)dormers(g,w,d,lift+h,m.plaster,m.slate,1);door(g,w,d,m.wetWood,w*.2);windows(g,w,d,h*.82,Math.max(2,Math.floor(h/.5)),2,m.warmWindow,lift);box(g,w*.48,.05,d*.32,m.wetWood,0,lift+.1,d*.62);pipe(g,w,d,lift+h,m.copper,-1);return finish(g);
   };
   const warehouse=({width:w,depth:d,height:h,seed}:BuildOptions)=>{
-    const r=randomFrom(seed),g=new THREE.Group();box(g,w,h*.78,d,m.soot);box(g,w*.34,h*.5,.03,m.wetWood,0,h*.25,d/2+.02);roof(g,w,d,h*.78,r()>.5?m.copper:m.slate,.18);cornice(g,w,d,h*.78,m.copper);for(let x=-w*.32;x<=w*.32;x+=w*.32)pane(g,w*.16,.12,m.window,x,h*.59,d/2+.021);cylinder(g,.055,.075,h*.78,7,m.pipe,w*.34,h*1.02,-d*.16);return finish(g);
+    const r=randomFrom(seed),g=new THREE.Group();box(g,w,h*.78,d,m.soot);box(g,w*.34,h*.5,.03,m.wetWood,0,h*.25,d/2+.02);roof(g,w,d,h*.78,r()>.5?m.copper:m.slate,.18);cornice(g,w,d,h*.78,m.copper);for(let x=-w*.32;x<=w*.32;x+=w*.32)pane(g,w*.16,.12,m.window,x,h*.59,d/2+.021);if(!lowDetail)for(const x of[-w*.23,w*.23]){box(g,w*.18,.18,d*.5,m.darkStone,x,h*.86,0);roof(g,w*.18,d*.5,h*.95,m.slate,.14)}cylinder(g,.055,.075,h*.78,7,m.pipe,w*.34,h*1.02,-d*.16);return finish(g);
   };
   const glassworks=({width:w,depth:d,height:h,seed}:BuildOptions)=>{
     const r=randomFrom(seed),g=new THREE.Group();box(g,w,h*.62,d,m.soot);cornice(g,w,d,h*.61,m.copper);for(let i=-1;i<=1;i++){const cap=new THREE.Mesh(coneGeometry(4),m.glass);cap.position.set(i*w*.27,h*.74,0);cap.scale.set(w*.24,h*.22,w*.24);cap.rotation.y=Math.PI/4;g.add(cap)}for(const side of[-1,1])cylinder(g,.05,.08,h*(.85+r()*.3),8,m.copper,side*w*.35,h*.7,-d*.28);door(g,w,d,m.copper);windows(g,w,d,h*.52,2,3,m.window);return finish(g);
   };
   const townhouse=({width:w,depth:d,height:h,seed}:BuildOptions)=>{
-    const r=randomFrom(seed),g=new THREE.Group();box(g,w,h,d,r()>.5?m.plaster:m.stone);cornice(g,w,d,h*.34,m.copper);cornice(g,w,d,h*.67,m.copper);roof(g,w,d,h,m.slate,.42);door(g,w,d,m.copper);windows(g,w,d,h*.88,Math.max(2,Math.floor(h/.48)),2,r()>.62?m.window:m.warmWindow);if(r()>.35)balcony(g,w,d,h*.61,m.copper);return finish(g);
+    const r=randomFrom(seed),g=new THREE.Group();box(g,w,h,d,r()>.5?m.plaster:m.stone);if(!lowDetail&&r()>.52)box(g,w*.38,h*.58,d*.32,m.stone,w*.34,h*.48,-d*.27);cornice(g,w,d,h*.34,m.copper);cornice(g,w,d,h*.67,m.copper);roof(g,w,d,h,m.slate,.42);if(!lowDetail&&r()>.32)dormers(g,w,d,h,r()>.5?m.plaster:m.stone,m.slate,r()>.7?2:1);door(g,w,d,m.copper);windows(g,w,d,h*.88,Math.max(2,Math.floor(h/.48)),2,r()>.62?m.window:m.warmWindow);if(r()>.35)balcony(g,w,d,h*.61,m.copper);return finish(g);
   };
   const towerHouse=({width:w,depth:d,height:h,seed}:BuildOptions)=>{
     const r=randomFrom(seed),g=new THREE.Group(),radius=Math.max(w,d)*.48;cylinder(g,radius*.9,radius,h*.72,7,r()>.55?m.plaster:m.stone);cylinder(g,radius*.72,radius*.82,h*.28,7,m.darkStone,0,h*.86,0);for(const y of[h*.43,h*.72]){const ring=new THREE.Mesh(new THREE.TorusGeometry(radius*.98,.035,5,24),m.copper);ring.rotation.x=Math.PI/2;ring.position.y=y;g.add(ring)}const cap=new THREE.Mesh(coneGeometry(7),m.slate);cap.position.y=h*1.14;cap.scale.set(radius*.78,h*.27,radius*.78);g.add(cap);for(let i=0;i<7;i++){const angle=i/7*Math.PI*2,win=box(g,.1,.17,.025,m.window,Math.sin(angle)*radius*.84,h*.55,Math.cos(angle)*radius*.84);win.rotation.y=angle}return finish(g);
