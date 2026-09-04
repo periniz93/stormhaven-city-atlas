@@ -671,9 +671,9 @@ function createCity(selectDistrict:(name:string,site?:LocalSite)=>void,selectBan
   addDetailCone(beaconShell,new THREE.Vector3(0,18.9,0),2.5,.28,copper);
   for(let i=0;i<12;i++){
     const angle=i/12*Math.PI*2,radius=3.15+(i%3)*.28,annex=new THREE.Vector3(Math.sin(angle)*radius,0,Math.cos(angle)*radius),height=.72+(i%4)*.13;
-    addDetailBox(beaconShell,annex.clone().add(new THREE.Vector3(0,height/2,0)),[1.15+(i%2)*.28,height,.9+(i%3)*.14],i%3===0?copper:soot,angle);
-    addDetailRoof(beaconShell,annex.clone().add(new THREE.Vector3(0,height,0)),.72,.58,.5,i%2?slate:copper,angle);
-    if(i%2===0)addDetailCylinder(beaconShell,annex.clone().add(new THREE.Vector3(.32,0,-.24)),height+1.05,.1,soot,(i%3-1)*.04);
+    addDetailBox(beaconShell,annex.clone().add(new THREE.Vector3(0,height/2,0)),[1.15+(i%2)*.28,height,.9+(i%3)*.14],mobileGrade?darkStone:i%3===0?copper:soot,angle);
+    addDetailRoof(beaconShell,annex.clone().add(new THREE.Vector3(0,height,0)),.72,.58,.5,mobileGrade?copper:i%2?slate:copper,angle);
+    if(i%2===0)addDetailCylinder(beaconShell,annex.clone().add(new THREE.Vector3(.32,0,-.24)),height+1.05,.1,mobileGrade?darkStone:soot,(i%3-1)*.04);
   }
   landmarkDraws+=bakeStaticGroup(beaconShell,"beacon-shell",!mobileGrade);
   const beaconBeamMaterial=new THREE.MeshBasicMaterial({color:0x8fefff,transparent:true,opacity:.1,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}),beaconBeam=new THREE.Mesh(new THREE.CylinderGeometry(.28,.55,28,8,1,true),beaconBeamMaterial);beaconBeam.position.y=34.4;beaconBeam.visible=!mobileGrade;
@@ -708,8 +708,8 @@ function createCity(selectDistrict:(name:string,site?:LocalSite)=>void,selectBan
   addDetailBox(eye,new THREE.Vector3(0,1.18,0),[5,2.05,1.92],stone);
   addDetailRoof(eye,new THREE.Vector3(0,2.68,0),1.7,3.7,1.55,slate);
   addDetailRoof(eye,new THREE.Vector3(0,2.2,0),3.55,1.3,1.25,slate);
-  addDetailRing(eye,new THREE.Vector3(0,2.05,-2.58),.56,.11,glass,true);
-  addDetailOctahedron(eye,new THREE.Vector3(0,2.05,-2.54),.22,arcLamp);
+  addDetailRing(eye,new THREE.Vector3(0,2.05,-2.58),.56,.11,mobileGrade?copper:glass,true);
+  addDetailOctahedron(eye,new THREE.Vector3(0,2.05,-2.54),.22,mobileGrade?copper:arcLamp);
   for(const side of[-1,1]){
     addDetailBox(eye,new THREE.Vector3(side*1.72,2.3,-1.7),[.82,4.25,.82],plaster);
     addDetailRoof(eye,new THREE.Vector3(side*1.72,4.38,-1.7),.62,.62,1.8,slate);
